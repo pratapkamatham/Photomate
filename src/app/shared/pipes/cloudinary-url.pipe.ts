@@ -5,8 +5,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class CloudinaryUrlPipe implements PipeTransform {
 
-  transform(value: unknown, ...args: unknown[]): unknown {
-    return null;
+  transform(publicId:string,cloudName:string,transformations:string='f_auto,q_auto,w_auto,dpr_auto'):string{
+    if(!publicId || !cloudName) return '';
+    return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${publicId}`;
   }
 
 }

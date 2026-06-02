@@ -6,7 +6,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  User as FirebaseUser
+  User as FirebaseUser,
+  sendPasswordResetEmail
 } from '@angular/fire/auth';
 import {
   Firestore,
@@ -80,7 +81,12 @@ export class AuthService {
       })
     );
   }
- 
+   // FORGOT PASSWORD
+  forgotPassword(email: string) {
+    return from(
+      sendPasswordResetEmail(this.auth, email)
+    );
+  }
   // -----------------------------------------------
   // GET USER ROLE FROM FIRESTORE
   // Strongly typed - returns UserRole not string

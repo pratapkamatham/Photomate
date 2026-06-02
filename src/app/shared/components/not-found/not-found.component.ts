@@ -1,3 +1,4 @@
+import { Router } from '@angular/router';
 import { Component } from '@angular/core';
 
 @Component({
@@ -6,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrls: ['./not-found.component.css']
 })
 export class NotFoundComponent {
-
+constructor(private router:Router)
+{}
+goHome(){
+  this.router.navigate(['/login']);
+}
 }

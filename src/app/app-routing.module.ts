@@ -3,43 +3,33 @@ import { RouterModule, Routes } from '@angular/router';
 import { NotFoundComponent } from './shared/components/not-found/not-found.component';
 
 const routes: Routes = [
+  // 1. Grouped Auth module comes first
   {
-    path:'',
-    redirectTo:'/login',
-    pathMatch:'full'
-  },
-  //Auth routes (lazy loaded)
-  {
-    path:'login',
-    loadChildren:()=>import('./features/auth/auth.module').then(m=>m.AuthModule)
+    path: 'auth',
+    loadChildren: () => import('./features/auth/auth.module').then(m => m.AuthModule)
   },
   {
-    path:'register',
-    loadChildren:()=>import('./features/auth/auth.module').then(m=>m.AuthModule)
+    path: 'dashboard',
+    loadChildren: () => import('./features/dashboard/dashboard.module').then(m => m.DashboardModule)
   },
-  //Photographer Dashboard(Lazy loaded + auth guard)
   {
-    path:'dashboard',
-    loadChildren:()=>import('./features/dashboard/dashboard.module').then(m=>m.DashboardModule)
+    path: 'admin',
+    loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule)
   },
-  //Super Admin Panel(Lazy loaded + super admin gaurd)
+  
+  // 2. Public portfolios handle the empty root string '' dynamically
   {
-    path:'admin',
-    loadChildren:()=>import('./features/admin/admin.module').then(m=>m.AdminModule)
+    path: '', 
+    loadChildren: () => import('./features/public/public.module').then(m => m.PublicModule)
   },
 
-  //Dynamic Routes
-   // Public photographer portfolio + galleries
+  // 3. Fallback/404 - strictly last
   {
-    path:'',
-    loadChildren:()=>import('./features/public/public.module').then(m=>m.PublicModule)
-  },
-//404- must be absolute last
-{
-  path:'**',
-  component:NotFoundComponent
-}
+    path: '**',
+    component: NotFoundComponent
+  }
 ];
+
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
