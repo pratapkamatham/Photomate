@@ -1,1 +1,85 @@
-<p>photographers-list works!</p>
+<div class="space-y-6">
+ 
+  <div class="flex items-center justify-between">
+    <h2 class="text-2xl font-semibold text-white">Photographers</h2>
+  </div>
+ 
+  <!-- Loading -->
+  <app-loader *ngIf="isLoading"></app-loader>
+ 
+  <!-- Empty -->
+  <div
+    *ngIf="!isLoading && photographers.length === 0"
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-12
+           text-center">
+    <p class="text-gray-400">No photographers registered yet.</p>
+  </div>
+ 
+  <!-- Table -->
+  <div
+    *ngIf="!isLoading && photographers.length > 0"
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm overflow-hidden">
+ 
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-[#2a2a2a]">
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">
+            Studio
+          </th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">
+            Slug
+          </th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">
+            Plan
+          </th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">
+            Status
+          </th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let p of photographers"
+          class="border-b border-[#2a2a2a] hover:bg-white/5
+                 transition-colors">
+          <td class="px-5 py-4 text-white font-medium">
+            {{ p.studioName || '—' }}
+          </td>
+          <td class="px-5 py-4 text-gray-400">
+            /{{ p.slug }}
+          </td>
+          <td class="px-5 py-4">
+            <span class="px-2 py-1 rounded-sm text-xs font-medium
+                         bg-[#c9a96e]/10 text-[#c9a96e]">
+              {{ p.subscriptionPlan || 'none' }}
+            </span>
+          </td>
+          <td class="px-5 py-4">
+            <span
+              [class.text-green-400]="p.isActive"
+              [class.text-red-400]="!p.isActive"
+              class="text-xs font-medium">
+              {{ p.isActive ? 'Active' : 'Suspended' }}
+            </span>
+          </td>
+          <td class="px-5 py-4">
+            <button
+              (click)="toggleActive(p)"
+              class="text-xs px-3 py-1 rounded-sm border transition-colors"
+              [class.border-red-500]="p.isActive"
+              [class.text-red-400]="p.isActive"
+              [class.border-green-500]="!p.isActive"
+              [class.text-green-400]="!p.isActive">
+              {{ p.isActive ? 'Suspend' : 'Activate' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+ 
+  </div>
+ 
+</div>

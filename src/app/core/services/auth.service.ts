@@ -76,7 +76,7 @@ export class AuthService {
   logout() {
     return from(signOut(this.auth)).pipe(
       switchMap(() => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/auth/login']);
         return of(null);
       })
     );
@@ -119,7 +119,6 @@ export class AuthService {
       })
     );
   }
- 
   // -----------------------------------------------
   // GET CURRENT FIREBASE USER (snapshot)
   // -----------------------------------------------

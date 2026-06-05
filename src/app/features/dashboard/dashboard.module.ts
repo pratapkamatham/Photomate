@@ -1,3 +1,4 @@
+import { SharedModule } from './../../shared/shared.module';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
@@ -9,6 +10,8 @@ import { GalleryUploadComponent } from './galleries/gallery-upload/gallery-uploa
 import { SettingsComponent } from './settings/settings.component';
 import { CloudinaryConnectComponent } from './cloudinary-connect/cloudinary-connect.component';
 import { BrandingComponent } from './branding/branding.component';
+import { DashboardLayoutComponent } from './layout/layout.component';
+import { RouterModule } from '@angular/router';
 
 
 @NgModule({
@@ -19,11 +22,14 @@ import { BrandingComponent } from './branding/branding.component';
     GalleryUploadComponent,
     SettingsComponent,
     CloudinaryConnectComponent,
-    BrandingComponent
+    BrandingComponent,
+    DashboardLayoutComponent
   ],
   imports: [
     CommonModule,
-    DashboardRoutingModule
+    DashboardRoutingModule,
+    RouterModule,
+    SharedModule
   ]
 })
 export class DashboardModule { }

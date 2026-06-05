@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NotFoundComponent } from './shared/components/not-found/not-found.component';
+import { authGuard } from './core/guards/auth.guard';
+import { superAdminGuard } from './core/guards/super-admin.guard';
 
 const routes: Routes = [
   // 1. Grouped Auth module comes first
@@ -10,10 +12,12 @@ const routes: Routes = [
   },
   {
     path: 'dashboard',
+    canActivate:[authGuard],
     loadChildren: () => import('./features/dashboard/dashboard.module').then(m => m.DashboardModule)
   },
   {
     path: 'admin',
+    canActivate:[authGuard,superAdminGuard],
     loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule)
   },
   
