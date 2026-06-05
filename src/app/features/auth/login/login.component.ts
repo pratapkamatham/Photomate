@@ -50,6 +50,7 @@ onSubmit():void{
         // Get role and redirect accordingly
         this.authService.getUserRole(credential.user.uid).subscribe({
           next: (role) => {
+            console.log('User role:',role);
             this.isLoading = false;
             if (role === 'super-admin') {
               this.router.navigate(['/admin']);
