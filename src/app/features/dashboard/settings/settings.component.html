@@ -1,1 +1,137 @@
-<p>settings works!</p>
+<div class="space-y-6 max-w-2xl">
+ 
+  <div>
+    <h2 class="text-2xl font-semibold text-white">Studio Settings</h2>
+    <p class="text-gray-400 text-sm mt-1">
+      Setup your public portfolio profile.
+    </p>
+  </div>
+ 
+  <!-- Loading -->
+  <app-loader *ngIf="isLoading"></app-loader>
+ 
+  <div
+    *ngIf="!isLoading"
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-6">
+ 
+    <!-- Success -->
+    <div *ngIf="successMessage"
+         class="mb-4 px-4 py-3 bg-green-900/30 border border-green-500/30
+                rounded-sm text-green-400 text-sm">
+      {{ successMessage }}
+    </div>
+ 
+    <!-- Error -->
+    <div *ngIf="errorMessage"
+         class="mb-4 px-4 py-3 bg-red-900/30 border border-red-500/30
+                rounded-sm text-red-400 text-sm">
+      {{ errorMessage }}
+    </div>
+ 
+    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+ 
+      <!-- Studio Name -->
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">
+          Studio Name <span class="text-[#c9a96e]">*</span>
+        </label>
+        <input
+          type="text"
+          formControlName="studioName"
+          placeholder="e.g. Vikas Captures"
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white
+                 placeholder-gray-600 rounded-sm px-4 py-3 text-sm
+                 focus:outline-none focus:border-[#c9a96e] transition-colors"
+          [class.border-red-500]="studioName?.invalid && studioName?.touched"
+        />
+        <p *ngIf="studioName?.invalid && studioName?.touched"
+           class="text-red-400 text-xs mt-1">
+          Studio name is required.
+        </p>
+      </div>
+ 
+      <!-- Slug -->
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">
+          Portfolio URL <span class="text-[#c9a96e]">*</span>
+        </label>
+        <div class="flex items-center gap-2">
+          <span class="text-gray-600 text-sm shrink-0">photomate.in/</span>
+          <input
+            type="text"
+            formControlName="slug"
+            placeholder="vikas-captures"
+            class="flex-1 bg-[#111111] border border-[#2a2a2a] text-white
+                   placeholder-gray-600 rounded-sm px-4 py-3 text-sm
+                   focus:outline-none focus:border-[#c9a96e] transition-colors"
+            [class.border-red-500]="slug?.invalid && slug?.touched"
+          />
+        </div>
+        <p class="text-gray-600 text-xs mt-1">
+          Your unique public URL. Only lowercase letters, numbers, hyphens.
+        </p>
+        <p *ngIf="slug?.invalid && slug?.touched"
+           class="text-red-400 text-xs mt-1">
+          Slug must be lowercase with hyphens only.
+        </p>
+      </div>
+ 
+      <!-- Bio -->
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">Bio</label>
+        <textarea
+          formControlName="bio"
+          rows="3"
+          placeholder="Tell clients about your photography style..."
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white
+                 placeholder-gray-600 rounded-sm px-4 py-3 text-sm
+                 focus:outline-none focus:border-[#c9a96e] transition-colors
+                 resize-none">
+        </textarea>
+      </div>
+ 
+      <!-- Phone -->
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">Phone</label>
+        <input
+          type="tel"
+          formControlName="phone"
+          placeholder="+91 98765 43210"
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white
+                 placeholder-gray-600 rounded-sm px-4 py-3 text-sm
+                 focus:outline-none focus:border-[#c9a96e] transition-colors"
+        />
+      </div>
+ 
+      <!-- Contact Email -->
+      <div class="mb-6">
+        <label class="block text-sm text-gray-400 mb-2">Contact Email</label>
+        <input
+          type="email"
+          formControlName="email"
+          placeholder="studio@example.com"
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white
+                 placeholder-gray-600 rounded-sm px-4 py-3 text-sm
+                 focus:outline-none focus:border-[#c9a96e] transition-colors"
+          [class.border-red-500]="email?.invalid && email?.touched"
+        />
+      </div>
+ 
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="isSaving"
+        class="w-full bg-[#c9a96e] text-black font-semibold py-3 rounded-sm
+               hover:bg-[#b8935a] transition-colors duration-200
+               disabled:opacity-50 disabled:cursor-not-allowed
+               flex items-center justify-center gap-2">
+        <span *ngIf="isSaving"
+              class="w-4 h-4 border-2 border-black border-t-transparent
+                     rounded-full animate-spin">
+        </span>
+        {{ isSaving ? 'Saving...' : 'Save Settings' }}
+      </button>
+ 
+    </form>
+  </div>
+</div>

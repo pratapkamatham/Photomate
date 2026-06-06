@@ -12,6 +12,7 @@ import { CloudinaryConnectComponent } from './cloudinary-connect/cloudinary-conn
 import { BrandingComponent } from './branding/branding.component';
 import { DashboardLayoutComponent } from './layout/layout.component';
 import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -29,7 +30,8 @@ import { RouterModule } from '@angular/router';
     CommonModule,
     DashboardRoutingModule,
     RouterModule,
-    SharedModule
+    SharedModule,
+    ReactiveFormsModule
   ]
 })
 export class DashboardModule { }

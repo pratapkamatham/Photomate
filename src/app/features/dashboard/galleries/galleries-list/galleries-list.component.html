@@ -1,1 +1,107 @@
-<p>galleries-list works!</p>
+<div class="space-y-6">
+ 
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h2 class="text-2xl font-semibold text-white">Galleries</h2>
+    <button
+      (click)="createGallery()"
+      class="flex items-center gap-2 bg-[#c9a96e] text-black font-semibold
+             px-5 py-2.5 rounded-sm hover:bg-[#b8935a] transition-colors">
+      <span>+</span>
+      New Gallery
+    </button>
+  </div>
+ 
+  <!-- Loading -->
+  <app-loader *ngIf="isLoading"></app-loader>
+ 
+  <!-- Error -->
+  <div *ngIf="errorMessage"
+       class="text-red-400 text-sm">
+    {{ errorMessage }}
+  </div>
+ 
+  <!-- Empty State -->
+  <div
+    *ngIf="!isLoading && galleries.length === 0"
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-16 text-center">
+    <p class="text-4xl mb-4">◫</p>
+    <h3 class="text-white font-medium mb-2">No galleries yet</h3>
+    <p class="text-gray-500 text-sm mb-6">
+      Create your first gallery to start sharing photos with clients.
+    </p>
+    <button
+      (click)="createGallery()"
+      class="bg-[#c9a96e] text-black font-semibold px-6 py-2.5 rounded-sm
+             hover:bg-[#b8935a] transition-colors">
+      Create First Gallery
+    </button>
+  </div>
+ 
+  <!-- Galleries Grid -->
+  <div
+    *ngIf="!isLoading && galleries.length > 0"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+ 
+    <div
+      *ngFor="let gallery of galleries"
+      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm overflow-hidden
+             hover:border-[#c9a96e]/40 transition-colors group cursor-pointer"
+      (click)="uploadPhotos(gallery.id!)">
+ 
+      <!-- Cover Image Placeholder -->
+      <div class="h-40 bg-[#111111] flex items-center justify-center
+                  border-b border-[#2a2a2a]">
+        <span *ngIf="!gallery.coverImage"
+              class="text-4xl text-gray-700">◫</span>
+        <img
+          *ngIf="gallery.coverImage"
+          [src]="gallery.coverImage"
+          [alt]="gallery.title"
+          class="w-full h-full object-cover"
+        />
+      </div>
+ 
+      <!-- Info -->
+      <div class="p-4">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <h3 class="text-white font-medium text-sm truncate
+                       group-hover:text-[#c9a96e] transition-colors">
+              {{ gallery.title }}
+            </h3>
+            <p class="text-gray-500 text-xs mt-0.5 truncate">
+              /{{ gallery.slug }}
+            </p>
+          </div>
+ 
+          <!-- Private Badge -->
+          <span
+            *ngIf="gallery.isPrivate"
+            class="shrink-0 text-xs px-2 py-0.5 bg-[#2a2a2a]
+                   text-gray-400 rounded-sm">
+            Private
+          </span>
+        </div>
+ 
+        <!-- Actions -->
+        <div class="flex gap-2 mt-4">
+          <button
+            (click)="uploadPhotos(gallery.id!); $event.stopPropagation()"
+            class="flex-1 text-xs border border-[#c9a96e]/40 text-[#c9a96e]
+                   py-1.5 rounded-sm hover:bg-[#c9a96e]/10 transition-colors">
+            Upload Photos
+          </button>
+          <button
+            (click)="deleteGallery(gallery, $event)"
+            class="text-xs border border-red-500/30 text-red-400 px-3
+                   py-1.5 rounded-sm hover:bg-red-500/10 transition-colors">
+            Delete
+          </button>
+        </div>
+      </div>
+ 
+    </div>
+  </div>
+ 
+</div>
