@@ -1,0 +1,48 @@
+name: Deploy PhotoMate to Firebase
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 
+
+      - name: Setup Node.js (Node 20)
+        uses: actions/setup-node@v4 
+        with:
+          node-version: '20' 
+          cache: 'npm'
+
+      # --- ANGULAR APP BUILD ---
+      - name: Install Angular dependencies
+        run: npm ci
+
+      - name: Build Angular app (production)
+        run: npm run build -- --configuration production
+
+      # --- FIREBASE FUNCTIONS BUILD ---
+      - name: Install Functions dependencies
+        run: |
+          cd functions
+          npm install
+          
+      - name: Build Cloud Functions (TypeScript to JS)
+        run: |
+          cd functions
+          npm run build
+
+      # --- DEPLOYMENT ---
+      - name: Deploy to Firebase Hosting + Functions
+        uses: FirebaseExtended/action-firebase-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: photomate-108a8
+          channelId: live

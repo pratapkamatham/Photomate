@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PhotographerService } from '../../../core/services/photographer.service';
 import { Photographer } from '../../../core/models/photographer.model';
+import { Functions, httpsCallable } from '@angular/fire/functions';
  
 @Component({
   selector: 'app-cloudinary-connect',
@@ -9,7 +10,7 @@ import { Photographer } from '../../../core/models/photographer.model';
   styleUrls: ['./cloudinary-connect.component.css']
 })
 export class CloudinaryConnectComponent implements OnInit {
- 
+
   cloudinaryForm!: FormGroup;
   isLoading = false;
   isSaving = false;
@@ -17,25 +18,26 @@ export class CloudinaryConnectComponent implements OnInit {
   errorMessage = '';
   isConnected = false;
   existingCloudName = '';
- 
+
   constructor(
     private fb: FormBuilder,
+    private functions: Functions,
     private photographerService: PhotographerService
   ) {}
- 
+
   ngOnInit(): void {
     this.cloudinaryForm = this.fb.group({
-      cloudName: ['', [Validators.required]],
-      apiKey:    ['', [Validators.required]],
-      apiSecret: ['', [Validators.required]]
+      cloudName: ['', Validators.required],
+      apiKey:    ['', Validators.required],
+      apiSecret: ['', Validators.required]
     });
     this.loadExistingConfig();
   }
- 
+
   get cloudName() { return this.cloudinaryForm.get('cloudName'); }
   get apiKey()    { return this.cloudinaryForm.get('apiKey'); }
   get apiSecret() { return this.cloudinaryForm.get('apiSecret'); }
- 
+
   loadExistingConfig(): void {
     this.isLoading = true;
     this.photographerService.getMyProfile().subscribe({
@@ -44,52 +46,46 @@ export class CloudinaryConnectComponent implements OnInit {
         if (profile?.cloudinary?.cloudName) {
           this.isConnected = true;
           this.existingCloudName = profile.cloudinary.cloudName;
-          // Pre-fill cloudName only, never show secret
           this.cloudinaryForm.patchValue({
             cloudName: profile.cloudinary.cloudName,
-            apiKey: profile.cloudinary.apiKey
+            apiKey:    profile.cloudinary.apiKey
           });
+          // Never pre-fill apiSecret
         }
       },
       error: () => { this.isLoading = false; }
     });
   }
- 
+
   onSubmit(): void {
     if (this.cloudinaryForm.invalid) {
       this.cloudinaryForm.markAllAsTouched();
       return;
     }
- 
+
     this.isSaving = true;
     this.successMessage = '';
     this.errorMessage = '';
- 
+
     const { cloudName, apiKey, apiSecret } = this.cloudinaryForm.value;
- 
-    // NOTE: In production, apiSecret should be encrypted
-    // via Firebase Function before storing.
-    // For MVP we store it as-is and handle encryption
-    // in the upload signature function.
-    this.photographerService.saveCloudinaryConfig(
-      cloudName,
-      apiKey,
-      apiSecret
-    ).subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.isConnected = true;
-        this.existingCloudName = cloudName;
-        this.successMessage = 'Cloudinary connected successfully!';
-        // Clear secret field after save
-        this.cloudinaryForm.patchValue({ apiSecret: '' });
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.errorMessage = 'Failed to save. Please try again.';
-        console.error(err);
-      }
+
+    // FIX 3: Call Firebase Function to save secret securely
+    // Never save to Firestore directly from Angular
+    const saveFn = httpsCallable(
+      this.functions,
+      'saveCloudinaryConfig'
+    );
+
+    saveFn({ cloudName, apiKey, apiSecret }).then(() => {
+      this.isSaving = false;
+      this.isConnected = true;
+      this.existingCloudName = cloudName;
+      this.successMessage = 'Cloudinary connected securely!';
+      this.cloudinaryForm.patchValue({ apiSecret: '' });
+    }).catch((err) => {
+      this.isSaving = false;
+      this.errorMessage = err.message || 'Failed to save. Please try again.';
     });
   }
- 
+
 }
