@@ -1,9 +1,9 @@
-import { HttpClient, HttpRequest, HttpEventType } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpEventType, HttpRequest } from '@angular/common/http';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { Observable, from, map, filter } from 'rxjs';
+import { Observable, from } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
 
-// FIX: ఇంటర్‌ఫేస్ పైనుంచి @Injectable() డెకరేటర్ తీసివేయబడింది
 export interface UploadProgress {
   progress: number;
   publicId?: string;
@@ -19,7 +19,6 @@ export interface UploadProgress {
 })
 export class CloudinaryService {
 
-  // FIX 5 + 14: Strict file validation
   readonly ALLOWED_MIME_TYPES = [
     'image/jpeg',
     'image/jpg',
@@ -39,9 +38,7 @@ export class CloudinaryService {
     private functions: Functions
   ) {}
 
-  // Validate file before requesting signature
   validateFile(file: File): { valid: boolean; error?: string } {
-    // Check MIME type
     if (!this.ALLOWED_MIME_TYPES.includes(file.type)) {
       return {
         valid: false,
@@ -49,7 +46,6 @@ export class CloudinaryService {
       };
     }
 
-    // Check extension
     const ext = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!this.ALLOWED_EXTENSIONS.includes(ext)) {
       return {
@@ -58,7 +54,6 @@ export class CloudinaryService {
       };
     }
 
-    // Check size
     if (file.size > this.MAX_FILE_SIZE_BYTES) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(1);
       return {
@@ -67,7 +62,6 @@ export class CloudinaryService {
       };
     }
 
-    // Check for zero-byte files
     if (file.size === 0) {
       return { valid: false, error: 'File is empty.' };
     }
@@ -75,8 +69,6 @@ export class CloudinaryService {
     return { valid: true };
   }
 
-  // STEP 1: Get upload signature from Firebase Function
-  // FIX 4: Only send galleryId - server controls folder
   getUploadSignature(galleryId: string): Observable<any> {
     const fn = httpsCallable(
       this.functions,
@@ -87,7 +79,6 @@ export class CloudinaryService {
     );
   }
 
-  // STEP 2: Upload directly to Cloudinary with progress
   uploadFile(
     file: File,
     signatureData: any
@@ -111,7 +102,6 @@ export class CloudinaryService {
     formData.append('timestamp', timestamp.toString());
     formData.append('folder', folder);
 
-    // FIX 5: Include signed restrictions
     if (allowedFormats) {
       formData.append('allowed_formats', allowedFormats);
     }
@@ -135,6 +125,7 @@ export class CloudinaryService {
           );
           return { progress, done: false };
         }
+        
         const body = event.body;
         return {
           progress: 100,
@@ -148,7 +139,6 @@ export class CloudinaryService {
     );
   }
 
-  // Build optimized Cloudinary URL
   buildUrl(
     cloudName: string,
     publicId: string,
@@ -165,5 +155,4 @@ export class CloudinaryService {
   ): string {
     return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,c_fill,w_${width},h_${height}/${publicId}`;
   }
-
 }
