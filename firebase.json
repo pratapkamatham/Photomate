@@ -1,10 +1,12 @@
 {
-<<<<<<< HEAD
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "functions": [
     {
       "source": "functions",
       "codebase": "default",
-      "disallowLegacyRuntimeConfig": true,
       "ignore": [
         "node_modules",
         ".git",
@@ -13,13 +15,10 @@
         "*.local"
       ],
       "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint",
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
   ],
-=======
->>>>>>> origin/develop
   "hosting": {
     "public": "dist/ui",
     "ignore": [
@@ -32,11 +31,6 @@
         "source": "**",
         "destination": "/index.html"
       }
-<<<<<<< HEAD
-    ]
-  }
-}
-=======
     ],
     "headers": [
       {
@@ -44,7 +38,7 @@
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "max-age=31536000"
+            "value": "public,max-age=31536000,immutable"
           }
         ]
       },
@@ -58,22 +52,9 @@
           {
             "key": "X-Frame-Options",
             "value": "DENY"
-          },
-          {
-            "key": "X-XSS-Protection",
-            "value": "1; mode=block"
           }
         ]
       }
     ]
-  },
-  "functions": {
-    "source": "functions",
-    "codebase": "default"
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
   }
 }
->>>>>>> origin/develop
