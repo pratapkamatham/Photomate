@@ -14,7 +14,8 @@ import {
   doc,
   setDoc,
   getDoc,
-  serverTimestamp
+  serverTimestamp,
+  Timestamp
 } from '@angular/fire/firestore';
 import { Observable, from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
@@ -82,7 +83,7 @@ export class AuthService {
   logout() {
     return from(signOut(this.auth)).pipe(
       switchMap(() => {
-        this.router.navigate(['/login']);
+        this.router.navigate(['/auth/login']);
         return of(null);
       })
     );
