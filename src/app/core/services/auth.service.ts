@@ -27,6 +27,8 @@ import { User, UserRole } from '../models/user.model';
 export class AuthService {
  
   currentUser$: Observable<FirebaseUser | null>;
+  // FIX: gallery-upload కాంపోనెంట్ అడుగుతున్న 'user$' ను ఇక్కడ మ్యాప్ చేసాం
+  user$: Observable<FirebaseUser | null>;
  
   constructor(
     private auth: Auth,
@@ -34,6 +36,7 @@ export class AuthService {
     private router: Router
   ) {
     this.currentUser$ = authState(this.auth);
+    this.user$ = this.currentUser$; // రెండు ఒకే స్ట్రీమ్‌ను షేర్ చేసుకుంటాయి
   }
  // -----------------------------------------------
   // REGISTER - creates user + trial subscription
@@ -123,6 +126,4 @@ export class AuthService {
   // Reason: auth.currentUser is null briefly after
   // page refresh even if user is authenticated.
   // Always use currentUser$ Observable in guards.
- 
 }
- 

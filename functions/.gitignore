@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
 # Compiled output
@@ -48,3 +49,15 @@ Thumbs.db
 
 # Runtime environment flags
 .env
+=======
+# Compiled JavaScript files
+lib/**/*.js
+lib/**/*.js.map
+
+# TypeScript v1 declaration files
+typings/
+
+# Node.js dependency directory
+node_modules/
+*.local
+>>>>>>> origin/develop
