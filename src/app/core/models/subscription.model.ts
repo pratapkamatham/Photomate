@@ -1,10 +1,36 @@
 export interface Subscription {
   id?: string;
   photographerId: string;
-  plan: 'monthly' |'quaterly'|'half-yearly'| 'yearly' | 'lifetime';
+  plan: 'trial' | 'monthly' | 'yearly' | 'lifetime';
   status: 'active' | 'expired' | 'suspended';
-  startDate: Date;
-  endDate?: Date;
+  startDate: any;
+  endDate?: any;
+  trialEndsAt?: any;
   amount: number;
-  createdAt: Date;
+  couponCode?: string;
+  affiliateId?: string;
+  createdAt: any;
+}
+export interface PlatformSettings {
+  contactEmail: string;
+  whatsappNumber: string;
+  trialDays: number;
+  platformName: string;
+  pricing: {
+    monthly:  PricingPlan;
+    yearly:   PricingPlan;
+    lifetime: PricingPlan;
+  };
+}
+
+export interface PricingPlan {
+  amount: number;
+  instamojoLink: string;
+  label: string;
+  description: string;
+}
+
+export interface TrialStatus {
+  status: 'active' | 'expiring_soon' | 'expired';
+  daysRemaining: number;
 }

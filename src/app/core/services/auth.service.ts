@@ -34,63 +34,64 @@ export class AuthService {
   ) {
     this.currentUser$ = authState(this.auth);
   }
- 
+ // -----------------------------------------------
+  // REGISTER - creates user + trial subscription
   // -----------------------------------------------
-  // REGISTER
-  // -----------------------------------------------
-  register(
-    email: string,
-    password: string,
-    role: UserRole = 'photographer'
-  ) {
+  register(email: string, password: string, role: UserRole = 'photographer') {
     return from(
       createUserWithEmailAndPassword(this.auth, email, password)
     ).pipe(
       switchMap(credential => {
         const uid = credential.user.uid;
+
         const userRef = doc(this.firestore, `users/${uid}`);
-        return from(
-          setDoc(userRef, {
-            uid,
-            email,
-            role,
-            createdAt: serverTimestamp()
+        return from(setDoc(userRef, {
+          uid,
+          email,
+          role,
+          createdAt: serverTimestamp()
+        })).pipe(
+          switchMap(() => {
+            if (role === 'photographer') {
+              const now = new Date();
+              const trialEndsAt = new Date(now);
+              trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+              const subRef = doc(this.firestore, `subscriptions/${uid}`);
+              return from(setDoc(subRef, {
+                photographerId: uid,
+                plan:           'trial',
+                status:         'active',
+                startDate:      serverTimestamp(),
+                trialEndsAt:    Timestamp.fromDate(trialEndsAt),
+                amount:         0,
+                createdAt:      serverTimestamp()
+              }));
+            }
+            return of(null);
           })
         );
       })
     );
   }
- 
-  // -----------------------------------------------
-  // LOGIN
-  // -----------------------------------------------
+
   login(email: string, password: string) {
-    return from(
-      signInWithEmailAndPassword(this.auth, email, password)
-    );
+    return from(signInWithEmailAndPassword(this.auth, email, password));
   }
- 
-  // -----------------------------------------------
-  // LOGOUT
-  // -----------------------------------------------
+
   logout() {
     return from(signOut(this.auth)).pipe(
       switchMap(() => {
-        this.router.navigate(['/auth/login']);
+        this.router.navigate(['/login']);
         return of(null);
       })
     );
   }
-   // FORGOT PASSWORD
+
   forgotPassword(email: string) {
-    return from(
-      sendPasswordResetEmail(this.auth, email)
-    );
+    return from(sendPasswordResetEmail(this.auth, email));
   }
-  // -----------------------------------------------
-  // GET USER ROLE FROM FIRESTORE
-  // Strongly typed - returns UserRole not string
-  // -----------------------------------------------
+
   getUserRole(uid: string): Observable<UserRole | null> {
     const userRef = doc(this.firestore, `users/${uid}`);
     return from(getDoc(userRef)).pipe(
@@ -103,25 +104,16 @@ export class AuthService {
       })
     );
   }
- 
-  // -----------------------------------------------
-  // GET CURRENT USER ROLE HELPER
-  // Uses currentUser$ Observable - safe after refresh
-  // Guards will use this constantly
-  // -----------------------------------------------
+
   getCurrentUserRole(): Observable<UserRole | null> {
     return this.currentUser$.pipe(
       switchMap(firebaseUser => {
-        if (!firebaseUser) {
-          return of(null);
-        }
+        if (!firebaseUser) return of(null);
         return this.getUserRole(firebaseUser.uid);
       })
     );
   }
-  // -----------------------------------------------
-  // GET CURRENT FIREBASE USER (snapshot)
-  // -----------------------------------------------
+
   getCurrentUser(): FirebaseUser | null {
     return this.auth.currentUser;
   }

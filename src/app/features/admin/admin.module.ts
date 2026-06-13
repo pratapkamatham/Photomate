@@ -9,6 +9,8 @@ import { SubscriptionsComponent } from './subscriptions/subscriptions.component'
 import { AdminLayoutComponent } from './layout/layout.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { PlatformSettingsComponent } from './platform-settings/platform-settings.component';
+import { SubscriptionActivationComponent } from './subscription-activation/subscription-activation.component';
 
 
 @NgModule({
@@ -16,7 +18,9 @@ import { RouterModule } from '@angular/router';
     HomeComponent,
     PhotographersListComponent,
     SubscriptionsComponent,
-    AdminLayoutComponent
+    AdminLayoutComponent,
+    PlatformSettingsComponent,
+    SubscriptionActivationComponent
   ],
   imports: [
     CommonModule,

@@ -1,0 +1,73 @@
+<div class="space-y-6 max-w-2xl">
+  <h2 class="text-2xl font-semibold text-white">Platform Settings</h2>
+  <app-loader *ngIf="isLoading"></app-loader>
+  
+  <div *ngIf="!isLoading" class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-6">
+    <div *ngIf="successMessage" class="mb-4 px-4 py-3 bg-green-900/30 border border-green-500/30 rounded-sm text-green-400 text-sm">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="mb-4 px-4 py-3 bg-red-900/30 border border-red-500/30 rounded-sm text-red-400 text-sm">
+      {{ errorMessage }}
+    </div>
+
+    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">Platform Name</label>
+        <input type="text" formControlName="platformName" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+      </div>
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">Contact Email</label>
+        <input type="email" formControlName="contactEmail" placeholder="admin@example.com" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+      </div>
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">WhatsApp Number (with country code)</label>
+        <input type="text" formControlName="whatsappNumber" placeholder="919876543210" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+      </div>
+      <div class="mb-5">
+        <label class="block text-sm text-gray-400 mb-2">Default Trial Period (Days)</label>
+        <input type="number" formControlName="trialDays" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+      </div>
+
+      <div class="border-t border-[#2a2a2a] my-6 pt-4">
+        <h3 class="text-white font-medium mb-4">Pricing Configuration (INR)</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Monthly Cost</label>
+            <input type="number" formControlName="monthlyAmount" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Monthly Instamojo Link</label>
+            <input type="text" formControlName="monthlyLink" placeholder="https://imjo.in/..." class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Yearly Cost</label>
+            <input type="number" formControlName="yearlyAmount" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Yearly Instamojo Link</label>
+            <input type="text" formControlName="yearlyLink" placeholder="https://imjo.in/..." class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Lifetime Cost</label>
+            <input type="number" formControlName="lifetimeAmount" class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Lifetime Instamojo Link</label>
+            <input type="text" formControlName="lifetimeLink" placeholder="https://imjo.in/..." class="w-full bg-[#111111] border border-[#2a2a2a] text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-[#c9a96e]"/>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="isSaving" class="w-full bg-[#c9a96e] text-black font-semibold py-3 rounded-sm hover:bg-[#b8935a] transition-colors text-sm disabled:opacity-50">
+        {{ isSaving ? 'Saving Changes...' : 'Save Configuration' }}
+      </button>
+    </form>
+  </div>
+</div>

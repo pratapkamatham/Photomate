@@ -1,0 +1,161 @@
+<div class="min-h-screen bg-[#111111] px-4 py-12">
+  <div class="w-full max-w-4xl mx-auto">
+
+    <div class="text-center mb-12">
+      <h1 class="text-3xl font-bold text-white mb-3">Upgrade Your Plan</h1>
+      <p class="text-gray-400 text-sm">Select a plan and use your coupon code for a discount.</p>
+      <div *ngIf="referralCode" class="mt-2 text-sm text-[#c9a96e]">
+        Referred by: {{ referralCode }}
+      </div>
+    </div>
+
+    <app-loader *ngIf="isLoading"></app-loader>
+
+    <div *ngIf="!isLoading && settings">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+        <div (click)="selectPlan('monthly', settings.pricing.monthly.amount)"
+          class="bg-[#1a1a1a] border rounded-sm p-6 cursor-pointer transition-all duration-200"
+          [class.border-[#c9a96e]]="selectedPlan === 'monthly'"
+          [class.border-[#2a2a2a]]="selectedPlan !== 'monthly'"
+          [class.shadow-lg]="selectedPlan === 'monthly'">
+          <h3 class="text-white font-semibold text-lg mb-1">{{ settings.pricing.monthly.label }}</h3>
+          <p class="text-gray-500 text-sm mb-4">{{ settings.pricing.monthly.description }}</p>
+          <p class="text-3xl font-bold text-white mb-6">
+            ₹{{ settings.pricing.monthly.amount }}
+            <span class="text-sm text-gray-500 font-normal">/mo</span>
+          </p>
+          <ul class="space-y-2 mb-6 text-sm text-gray-400">
+            <li>✓ Unlimited galleries</li>
+            <li>✓ Your own Cloudinary storage</li>
+            <li>✓ Public portfolio page</li>
+            <li>✓ Client gallery sharing</li>
+          </ul>
+          <div class="w-full py-2.5 rounded-sm text-center text-sm font-semibold transition-colors"
+               [class.bg-[#c9a96e]]="selectedPlan === 'monthly'"
+               [class.text-black]="selectedPlan === 'monthly'"
+               [class.border]="selectedPlan !== 'monthly'"
+               [class.border-[#c9a96e]]="selectedPlan !== 'monthly'"
+               [class.text-[#c9a96e]]="selectedPlan !== 'monthly'">
+            {{ selectedPlan === 'monthly' ? 'Selected ✓' : 'Select' }}
+          </div>
+        </div>
+
+        <div (click)="selectPlan('yearly', settings.pricing.yearly.amount)"
+          class="bg-[#1a1a1a] border rounded-sm p-6 cursor-pointer transition-all duration-200 relative"
+          [class.border-[#c9a96e]]="selectedPlan === 'yearly'"
+          [class.border-[#2a2a2a]]="selectedPlan !== 'yearly'">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="bg-[#c9a96e] text-black text-xs font-bold px-3 py-1 rounded-sm">BEST VALUE</span>
+          </div>
+          <h3 class="text-white font-semibold text-lg mb-1">{{ settings.pricing.yearly.label }}</h3>
+          <p class="text-gray-500 text-sm mb-4">{{ settings.pricing.yearly.description }}</p>
+          <p class="text-3xl font-bold text-white mb-6">
+            ₹{{ settings.pricing.yearly.amount }}
+            <span class="text-sm text-gray-500 font-normal">/yr</span>
+          </p>
+          <ul class="space-y-2 mb-6 text-sm text-gray-400">
+            <li>✓ Everything in Monthly</li>
+            <li>✓ Priority support</li>
+            <li>✓ Early access to features</li>
+            <li>✓ Save vs monthly billing</li>
+          </ul>
+          <div class="w-full py-2.5 rounded-sm text-center text-sm font-semibold transition-colors"
+               [class.bg-[#c9a96e]]="selectedPlan === 'yearly'"
+               [class.text-black]="selectedPlan === 'yearly'"
+               [class.border]="selectedPlan !== 'yearly'"
+               [class.border-[#c9a96e]]="selectedPlan !== 'yearly'"
+               [class.text-[#c9a96e]]="selectedPlan !== 'yearly'">
+            {{ selectedPlan === 'yearly' ? 'Selected ✓' : 'Select' }}
+          </div>
+        </div>
+
+        <div (click)="selectPlan('lifetime', settings.pricing.lifetime.amount)"
+          class="bg-[#1a1a1a] border rounded-sm p-6 cursor-pointer transition-all duration-200"
+          [class.border-[#c9a96e]]="selectedPlan === 'lifetime'"
+          [class.border-[#2a2a2a]]="selectedPlan !== 'lifetime'">
+          <h3 class="text-white font-semibold text-lg mb-1">{{ settings.pricing.lifetime.label }}</h3>
+          <p class="text-gray-500 text-sm mb-4">{{ settings.pricing.lifetime.description }}</p>
+          <p class="text-3xl font-bold text-white mb-6">
+            ₹{{ settings.pricing.lifetime.amount }}
+            <span class="text-sm text-gray-500 font-normal">once</span>
+          </p>
+          <ul class="space-y-2 mb-6 text-sm text-gray-400">
+            <li>✓ Everything in Yearly</li>
+            <li>✓ Lifetime access</li>
+            <li>✓ All future features</li>
+            <li>✓ Never pay again</li>
+          </ul>
+          <div class="w-full py-2.5 rounded-sm text-center text-sm font-semibold transition-colors"
+               [class.bg-[#c9a96e]]="selectedPlan === 'lifetime'"
+               [class.text-black]="selectedPlan === 'lifetime'"
+               [class.border]="selectedPlan !== 'lifetime'"
+               [class.border-[#c9a96e]]="selectedPlan !== 'lifetime'"
+               [class.text-[#c9a96e]]="selectedPlan !== 'lifetime'">
+            {{ selectedPlan === 'lifetime' ? 'Selected ✓' : 'Select' }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedPlan" class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-6 mb-6">
+        <h3 class="text-white font-medium mb-4">Have a coupon code?</h3>
+        <div class="flex gap-3 mb-4">
+          <input type="text" [(ngModel)]="couponCode" placeholder="Enter code e.g. SAHA_20"
+            class="flex-1 bg-[#111111] border border-[#2a2a2a] text-white placeholder-gray-600 rounded-sm px-4 py-3 text-sm uppercase focus:outline-none focus:border-[#c9a96e]" />
+          <button (click)="validateCoupon()" [disabled]="isValidating || !couponCode"
+            class="bg-[#c9a96e] text-black font-semibold px-5 rounded-sm hover:bg-[#b8935a] transition-colors text-sm disabled:opacity-50">
+            {{ isValidating ? 'Checking...' : 'Apply' }}
+          </button>
+        </div>
+
+        <div *ngIf="couponValidation">
+          <div *ngIf="couponValidation.valid" class="p-4 bg-green-900/20 border border-green-500/30 rounded-sm">
+            <p class="text-green-400 text-sm font-medium mb-3">✓ {{ couponValidation.message }}</p>
+            <div class="space-y-1 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-400">Original</span>
+                <span class="text-gray-400 line-through">₹{{ selectedAmount }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400">Discount</span>
+                <span class="text-green-400">-₹{{ couponValidation.discountAmount }}</span>
+              </div>
+              <div class="flex justify-between font-semibold pt-2 border-t border-green-500/20">
+                <span class="text-white">You pay</span>
+                <span class="text-white text-lg">₹{{ couponValidation.finalAmount }}</span>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!couponValidation.valid" class="p-3 bg-red-900/20 border border-red-500/30 rounded-sm text-red-400 text-sm">
+            ✗ {{ couponValidation.message }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedPlan" class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-6 text-center">
+        <p class="text-gray-400 text-sm mb-2">You will pay: <span class="text-white font-bold text-xl ml-2">₹{{ getFinalAmount() }}</span></p>
+        <p class="text-gray-500 text-xs mb-6">After payment contact us to activate your subscription.</p>
+        <button (click)="openPaymentLink()" class="w-full bg-[#c9a96e] text-black font-semibold py-4 rounded-sm hover:bg-[#b8935a] transition-colors text-lg mb-4">
+          Pay ₹{{ getFinalAmount() }} via Instamojo
+        </button>
+        <div class="flex justify-center gap-4">
+          <button (click)="openWhatsApp()" class="flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors">
+            💬 WhatsApp after payment
+          </button>
+          <button (click)="openEmail()" class="flex items-center gap-2 text-sm text-[#c9a96e] hover:text-[#b8935a] transition-colors">
+            ✉ Email after payment
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && !settings" class="text-center py-12">
+      <p class="text-gray-400 mb-6">Plans not configured yet. Contact support to upgrade.</p>
+      <div class="flex justify-center gap-4">
+        <button (click)="openWhatsApp()" class="bg-green-600/20 border border-green-600/40 text-green-400 font-medium px-6 py-3 rounded-sm hover:bg-green-600/30 transition-colors text-sm">💬 WhatsApp</button>
+        <button (click)="openEmail()" class="bg-[#c9a96e]/10 border border-[#c9a96e]/40 text-[#c9a96e] font-medium px-6 py-3 rounded-sm hover:bg-[#c9a96e]/20 transition-colors text-sm">✉ Email Us</button>
+      </div>
+    </div>
+
+  </div>
+</div>

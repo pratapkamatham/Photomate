@@ -1,0 +1,23 @@
+<div class="min-h-screen bg-[#111111] flex items-center justify-center px-4">
+  <div class="w-full max-w-md text-center">
+    <div class="text-6xl mb-6">⏰</div>
+    <h1 class="text-2xl font-bold text-white mb-3">Your Free Trial Has Expired</h1>
+    <p class="text-gray-400 text-sm mb-8 leading-relaxed">
+      Your 7-day free trial has ended. Upgrade your plan to continue using PhotoMate. 
+      Your public portfolio and galleries remain accessible to your clients.
+    </p>
+    <div class="space-y-3">
+      <button (click)="goToUpgrade()" class="w-full bg-[#c9a96e] text-black font-semibold py-3 rounded-sm hover:bg-[#b8935a] transition-colors">
+        View Upgrade Plans
+      </button>
+      <button (click)="openWhatsApp()" class="w-full bg-green-600/20 border border-green-600/40 text-green-400 font-medium py-3 rounded-sm hover:bg-green-600/30 transition-colors flex items-center justify-center gap-2">
+        💬 Contact on WhatsApp
+      </button>
+      <button (click)="openEmail()" class="w-full bg-[#c9a96e]/10 border border-[#c9a96e]/40 text-[#c9a96e] font-medium py-3 rounded-sm hover:bg-[#c9a96e]/20 transition-colors flex items-center justify-center gap-2">
+        ✉ Send us an Email
+      </button>
+    </div>
+    <p class="text-gray-600 text-xs mt-8">Your portfolio and galleries remain accessible to your clients even after trial expiry.</p>
+    <button (click)="logout()" class="mt-4 text-gray-600 text-xs hover:text-gray-400 transition-colors">Sign out</button>
+  </div>
+</div>

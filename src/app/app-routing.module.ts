@@ -20,7 +20,18 @@ const routes: Routes = [
     canActivate:[authGuard,superAdminGuard],
     loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule)
   },
-  
+  //Subscription path management
+
+  {
+    path: 'upgrade',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/upgrade/upgrade.module').then(m => m.UpgradeModule)
+  },
+  {
+    path: 'expired',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/upgrade/upgrade.module').then(m => m.UpgradeModule)
+  },
   // 2. Public portfolios handle the empty root string '' dynamically
   {
     path: '', 

@@ -107,7 +107,26 @@ export class GalleryService {
       })
     );
   }
- 
+ // GET public galleries for a photographer
+  // Used on public portfolio page
+  getPublicGalleries(photographerId: string): Observable<Gallery[]> {
+    const ref = collection(this.firestore, 'galleries');
+    const q = query(
+      ref,
+      where('photographerId', '==', photographerId),
+      where('isPrivate', '==', false),
+      orderBy('createdAt', 'desc')
+    );
+    return from(getDocs(q)).pipe(
+      switchMap(snapshot => {
+        const galleries = snapshot.docs.map(d => ({
+          id: d.id,
+          ...d.data()
+        } as Gallery));
+        return of(galleries);
+      })
+    );
+  }
   // -----------------------------------------------
   // UPDATE gallery
   // -----------------------------------------------

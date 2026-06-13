@@ -9,6 +9,7 @@ import { LoaderComponent } from './components/loader/loader.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 import { CloudinaryUrlPipe } from './pipes/cloudinary-url.pipe';
 import { LazyImageDirective } from './directives/lazy-image.directive';
+import { PopupComponent } from './components/trial/popup/popup.component';
 
 
 
@@ -21,7 +22,8 @@ import { LazyImageDirective } from './directives/lazy-image.directive';
     LoaderComponent,
     NotFoundComponent,
     CloudinaryUrlPipe,
-    LazyImageDirective
+    LazyImageDirective,
+    PopupComponent
   ],
   imports: [
     CommonModule,

@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { PhotographerService } from 'src/app/core/services/photographer.service';
-
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { PhotographerService } from '../../../core/services/photographer.service';
+import { Theme } from '../../../core/models/photographer.model';
+ 
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -32,16 +33,20 @@ export class SettingsComponent implements OnInit {
     });
  
     // Auto generate slug from studio name
-    this.settingsForm.get('studioName')?.valueChanges.subscribe(value => {
-      if (!this.profileExists) {
-        const slug = value
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-');
-        this.settingsForm.patchValue({ slug }, { emitEvent: false });
-      }
-    });
+    this.settingsForm.get('studioName')?.valueChanges
+      .subscribe(value => {
+        if (!this.profileExists) {
+          const slug = value
+            .toLowerCase()
+            .trim()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-');
+          this.settingsForm.patchValue(
+            { slug },
+            { emitEvent: false }
+          );
+        }
+      });
  
     this.loadProfile();
   }
@@ -60,7 +65,7 @@ export class SettingsComponent implements OnInit {
           this.settingsForm.patchValue({
             studioName: profile.studioName,
             slug:       profile.slug,
-            bio:        profile.bio || '',
+            bio:        profile.bio   || '',
             phone:      profile.phone || '',
             email:      profile.email || ''
           });
@@ -80,17 +85,24 @@ export class SettingsComponent implements OnInit {
     this.successMessage = '';
     this.errorMessage = '';
  
+    // FIX: Complete Theme object with ALL required fields
+    const defaultTheme: Theme = {
+      primaryColor:    '#111111',
+      accentColor:     '#c9a96e',
+      backgroundColor: '#111111',
+      textColor:       '#ffffff',
+      font:            'Poppins',
+      layout:          'luxury-dark',
+      heroStyle:       'centered'
+    };
+ 
     const data = {
       studioName: this.settingsForm.value.studioName,
       slug:       this.settingsForm.value.slug,
       bio:        this.settingsForm.value.bio,
       phone:      this.settingsForm.value.phone,
       email:      this.settingsForm.value.email,
-      theme: {
-        primaryColor: '#000000',
-        font: 'Poppins',
-        layout: 'luxury-dark'
-      }
+      theme:      defaultTheme
     };
  
     const operation$ = this.profileExists
@@ -105,7 +117,7 @@ export class SettingsComponent implements OnInit {
       },
       error: () => {
         this.isSaving = false;
-        this.errorMessage = 'Failed to save settings. Please try again.';
+        this.errorMessage = 'Failed to save. Please try again.';
       }
     });
   }

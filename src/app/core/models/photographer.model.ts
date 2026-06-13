@@ -5,22 +5,28 @@ export interface CloudinaryConfig {
 }
  
 export interface Theme {
-  primaryColor: string;
-  font: string;
-  layout: string;
+  primaryColor:    string;
+  accentColor:     string;
+  backgroundColor: string;
+  textColor:       string;
+  font:            string;
+  layout:          'luxury-dark' | 'minimal-light' | 'bold-dark';
+  heroStyle:       'centered' | 'split' | 'fullscreen';
 }
  
 export interface Photographer {
-  id?: string;
-  ownerUid: string;
-  slug: string;
-  studioName: string;
-  bio?: string;
-  phone?: string;
-  email?: string;
-  theme: Theme;
-  subscriptionPlan: 'monthly' | 'yearly' | 'lifetime' | 'none';
-  isActive: boolean;
-  cloudinary?: CloudinaryConfig;
-  createdAt: Date;
+ id?:              string;
+  ownerUid:         string;
+  slug:             string;
+  studioName:       string;
+  bio?:             string;
+  phone?:           string;
+  email?:           string;
+  logoUrl?:         string;
+  coverImageUrl?:   string;
+  theme:            Theme;
+  subscriptionPlan: 'trial' | 'monthly' | 'yearly' | 'lifetime' | 'none';
+  isActive:         boolean;
+  cloudinary?:      CloudinaryConfig;
+  createdAt?:       any;
 }

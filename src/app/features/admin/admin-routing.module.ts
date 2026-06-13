@@ -4,6 +4,8 @@ import { AdminLayoutComponent } from './layout/layout.component';
 import { HomeComponent } from './home/home.component';
 import { PhotographersListComponent } from './photographers/photographers-list/photographers-list.component';
 import { SubscriptionsComponent } from './subscriptions/subscriptions.component';
+import { PlatformSettingsComponent } from './platform-settings/platform-settings.component';
+import { SubscriptionActivationComponent } from './subscription-activation/subscription-activation.component';
 
 const routes: Routes = [
   {
@@ -11,9 +13,11 @@ const routes: Routes = [
     component:AdminLayoutComponent,
     children:[
       {path:'',component:HomeComponent},
-            { path: 'photographers', component: PhotographersListComponent },
-      { path: 'subscriptions', component: SubscriptionsComponent }
-
+      { path: 'photographers', component: PhotographersListComponent },
+      { path: 'subscriptions', component: SubscriptionsComponent },
+      {path:'settings',component:PlatformSettingsComponent},
+      {path:'activate',component:SubscriptionActivationComponent}
+     
     ]
   }
 ];

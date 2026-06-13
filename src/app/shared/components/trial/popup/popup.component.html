@@ -1,0 +1,17 @@
+<div *ngIf="showPopup" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+  <div class="bg-[#1a1a1a] border border-[#c9a96e]/40 rounded-sm p-8 max-w-sm w-full text-center shadow-2xl">
+    <div class="text-4xl mb-4">⏳</div>
+    <h2 class="text-white font-semibold text-lg mb-2">Trial Ending Soon</h2>
+    <p class="text-gray-400 text-sm mb-6 leading-relaxed">
+      Your free trial expires in <span class="text-[#c9a96e] font-bold">{{ daysRemaining }} {{ daysRemaining === 1 ? 'day' : 'days' }}</span>. Upgrade now to keep your galleries running for clients.
+    </p>
+    <div class="space-y-3">
+      <button (click)="upgrade()" class="w-full bg-[#c9a96e] text-black font-semibold py-2.5 rounded-sm hover:bg-[#b8935a] transition-colors">
+        Upgrade Now
+      </button>
+      <button (click)="close()" class="w-full text-gray-500 text-sm hover:text-gray-300 transition-colors py-1">
+        Remind me later
+      </button>
+    </div>
+  </div>
+</div>
