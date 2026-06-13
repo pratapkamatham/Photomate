@@ -54,7 +54,11 @@ onSubmit():void{
             this.isLoading = false;
             if (role === 'super-admin') {
               this.router.navigate(['/admin']);
-            } else {
+            }else if(role==='affiliate'){
+              this.router.navigate(['/affiliate-portal']);
+
+            }            
+            else {
               this.router.navigate(['/dashboard']);
             }
           },

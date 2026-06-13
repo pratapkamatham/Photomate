@@ -11,6 +11,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PlatformSettingsComponent } from './platform-settings/platform-settings.component';
 import { SubscriptionActivationComponent } from './subscription-activation/subscription-activation.component';
+import { AffiliatesListComponent } from './affiliates/affiliates-list/affiliates-list.component';
+import { AffiliateDetailComponent } from './affiliates/affiliate-detail/affiliate-detail.component';
 
 
 @NgModule({
@@ -20,7 +22,9 @@ import { SubscriptionActivationComponent } from './subscription-activation/subsc
     SubscriptionsComponent,
     AdminLayoutComponent,
     PlatformSettingsComponent,
-    SubscriptionActivationComponent
+    SubscriptionActivationComponent,
+    AffiliatesListComponent,
+    AffiliateDetailComponent
   ],
   imports: [
     CommonModule,

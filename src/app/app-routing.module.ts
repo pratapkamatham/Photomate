@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NotFoundComponent } from './shared/components/not-found/not-found.component';
 import { authGuard } from './core/guards/auth.guard';
 import { superAdminGuard } from './core/guards/super-admin.guard';
+import { affiliateGuard } from './core/guards/affiliate.guard';
 
 const routes: Routes = [
   {
@@ -26,6 +27,13 @@ const routes: Routes = [
     canActivate: [authGuard, superAdminGuard],
     loadChildren: () =>
       import('./features/admin/admin.module').then(m => m.AdminModule)
+  },
+   {
+    path: 'affiliate-portal',
+    canActivate: [authGuard, affiliateGuard],
+    loadChildren: () =>
+      import('./features/affiliate-portal/affiliate-portal.module')
+        .then(m => m.AffiliatePortalModule)
   },
   {
     path: 'upgrade',

@@ -1,0 +1,148 @@
+<div class="space-y-8" *ngIf="!isLoading">
+ 
+  <!-- Welcome -->
+  <div>
+    <h2 class="text-2xl font-semibold text-white">
+      Welcome, {{ affiliate?.name }} 👋
+    </h2>
+    <p class="text-gray-400 text-sm mt-1">Your partner dashboard</p>
+  </div>
+ 
+  <!-- Stats -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+ 
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+      <p class="text-xs text-gray-500 mb-2">This Month Sales</p>
+      <p class="text-2xl font-bold text-white">
+        {{ affiliate?.currentCount }}
+        <span class="text-sm text-gray-500 font-normal">
+          /{{ affiliate?.targetCount }}
+        </span>
+      </p>
+    </div>
+ 
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+      <p class="text-xs text-gray-500 mb-2">Commission Rate</p>
+      <p class="text-2xl font-bold text-[#c9a96e]">
+        {{ affiliate?.commissionRate }}%
+      </p>
+    </div>
+ 
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+      <p class="text-xs text-gray-500 mb-2">Total Earned</p>
+      <p class="text-2xl font-bold text-white">
+        ₹{{ affiliate?.totalEarnings | number:'1.0-0' }}
+      </p>
+    </div>
+ 
+    <div
+      class="bg-[#1a1a1a] border rounded-sm p-5"
+      [class.border-green-500]="(affiliate?.pendingPayout || 0) > 0"
+      [class.border-[#2a2a2a]]="(affiliate?.pendingPayout || 0) === 0">
+      <p class="text-xs text-gray-500 mb-2">Pending Payout</p>
+      <p class="text-2xl font-bold"
+         [class.text-green-400]="(affiliate?.pendingPayout || 0) > 0"
+         [class.text-white]="(affiliate?.pendingPayout || 0) === 0">
+        ₹{{ affiliate?.pendingPayout | number:'1.2-2' }}
+      </p>
+    </div>
+ 
+  </div>
+ 
+  <!-- Target Progress -->
+  <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+    <div class="flex justify-between text-sm mb-3">
+      <span class="text-gray-400">Monthly Target Progress</span>
+      <span class="text-white font-medium">
+        {{ affiliate?.currentCount }}/{{ affiliate?.targetCount }} sales
+      </span>
+    </div>
+    <div class="h-3 bg-[#2a2a2a] rounded-full overflow-hidden">
+      <div
+        class="h-full bg-[#c9a96e] rounded-full transition-all duration-500"
+        [style.width.%]="affiliate?.targetCount && affiliate?.targetCount! > 0
+          ? (affiliate?.currentCount! / affiliate?.targetCount!) * 100
+          : 0">
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mt-2">
+      <ng-container *ngIf="affiliate?.targetCount! - affiliate?.currentCount! > 0">
+        {{ affiliate?.targetCount! - affiliate?.currentCount! }} more sales to hit target
+      </ng-container>
+      <ng-container *ngIf="affiliate?.targetCount! - affiliate?.currentCount! <= 0">
+        🎉 Target achieved!
+      </ng-container>
+    </p>
+  </div>
+ 
+  <!-- Quick Share Codes -->
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-white font-medium">Your Codes</h3>
+      <a routerLink="/affiliate-portal/codes"
+         class="text-[#c9a96e] text-sm hover:underline no-underline">
+        View all →
+      </a>
+    </div>
+ 
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ 
+      <div
+        *ngFor="let code of codes"
+        class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-4
+               hover:border-[#c9a96e]/30 transition-colors">
+ 
+        <div class="flex items-center justify-between mb-3">
+          <span class="font-mono font-bold text-[#c9a96e] text-lg">
+            {{ code.code }}
+          </span>
+          <!-- FIX: Properly closed span tag -->
+          <span
+            class="text-xs px-2 py-0.5 rounded-sm"
+            [class.bg-blue-900]="code.type === 'coupon'"
+            [class.text-blue-400]="code.type === 'coupon'"
+            [class.bg-purple-900]="code.type === 'referral'"
+            [class.text-purple-400]="code.type === 'referral'">
+            {{ code.type }}
+          </span>
+        </div>
+ 
+        <p class="text-gray-400 text-sm mb-3">
+          <ng-container *ngIf="code.type === 'coupon'">
+            {{ code.discountPercent }}% discount for photographer
+          </ng-container>
+          <ng-container *ngIf="code.type === 'referral'">
+            Referral tracking link
+          </ng-container>
+        </p>
+ 
+        <p class="text-gray-600 text-xs mb-3">
+          Used {{ code.usageCount }} times
+        </p>
+ 
+        <div class="flex gap-2">
+          <button
+            (click)="copyCode(code.code)"
+            class="flex-1 text-xs border border-[#2a2a2a] text-gray-400
+                   py-2 rounded-sm hover:border-gray-500 hover:text-white
+                   transition-colors">
+            📋 Copy Code
+          </button>
+          <button
+            (click)="shareOnWhatsApp(code)"
+            class="flex-1 text-xs bg-green-600/20 border border-green-600/40
+                   text-green-400 py-2 rounded-sm hover:bg-green-600/30
+                   transition-colors">
+            💬 Share
+          </button>
+        </div>
+ 
+      </div>
+ 
+    </div>
+ 
+  </div>
+ 
+</div>
+ 
+<app-loader *ngIf="isLoading"></app-loader>

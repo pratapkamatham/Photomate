@@ -1,0 +1,81 @@
+<div class="flex h-screen bg-[#111111] overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside
+    [class.w-64]="isSidebarOpen"
+    [class.w-16]="!isSidebarOpen"
+    class="flex flex-col bg-[#1a1a1a] border-r border-[#2a2a2a]
+           transition-all duration-300 shrink-0">
+
+    <!-- Logo -->
+    <div class="flex items-center h-16 px-4 border-b border-[#2a2a2a]">
+      <span *ngIf="isSidebarOpen"
+            class="text-lg font-bold text-white tracking-widest uppercase">
+        Photo<span class="text-[#c9a96e]">Mate</span>
+        <span class="text-xs text-gray-500 ml-2 normal-case">
+          Partner
+        </span>
+      </span>
+      <span *ngIf="!isSidebarOpen"
+            class="text-lg font-bold text-[#c9a96e]">P</span>
+    </div>
+
+    <!-- Nav -->
+    <nav class="flex-1 py-6 space-y-1 px-2">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.route"
+        routerLinkActive="bg-[#c9a96e]/10 text-[#c9a96e]
+                          border-l-2 border-[#c9a96e]"
+        [routerLinkActiveOptions]="{ exact: item.route === '/affiliate-portal' }"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-sm
+               text-gray-400 hover:text-white hover:bg-white/5
+               transition-all no-underline cursor-pointer">
+        <span class="text-lg shrink-0">{{ item.icon }}</span>
+        <span *ngIf="isSidebarOpen" class="text-sm font-medium">
+          {{ item.label }}
+        </span>
+      </a>
+    </nav>
+
+    <!-- User Info + Logout -->
+    <div class="border-t border-[#2a2a2a] p-4">
+      <div *ngIf="isSidebarOpen && affiliate" class="mb-3">
+        <p class="text-white text-sm font-medium">
+          {{ affiliate.name }}
+        </p>
+        <p class="text-xs text-[#c9a96e]">Partner</p>
+        <p class="text-xs text-gray-500 truncate">
+          {{ affiliate.email }}
+        </p>
+      </div>
+      <button
+        (click)="logout()"
+        class="flex items-center gap-3 w-full px-3 py-2 rounded-sm
+               text-gray-400 hover:text-red-400 hover:bg-red-400/5
+               transition-all text-sm">
+        <span class="text-lg shrink-0">⎋</span>
+        <span *ngIf="isSidebarOpen">Logout</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <div class="flex flex-col flex-1 overflow-hidden">
+    <header class="flex items-center h-16 px-6 bg-[#1a1a1a]
+                   border-b border-[#2a2a2a] shrink-0">
+      <button (click)="toggleSidebar()"
+              class="text-gray-400 hover:text-white mr-4">
+        <span class="text-xl">☰</span>
+      </button>
+      <h1 class="text-white font-medium text-sm flex-1">
+        Partner Portal
+      </h1>
+    </header>
+    <main class="flex-1 overflow-y-auto p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+</div>
