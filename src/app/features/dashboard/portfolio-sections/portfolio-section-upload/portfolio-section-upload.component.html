@@ -1,0 +1,68 @@
+<div class="space-y-6">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <button type="button" (click)="goBack()" class="text-gray-400 hover:text-white">Back</button>
+      <div>
+        <h2 class="text-2xl font-semibold text-white">{{ section?.title || 'Portfolio Section' }}</h2>
+        <p class="text-gray-500 text-sm">Upload only images related to this showcase section.</p>
+      </div>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" (click)="copySectionUrl()" class="border border-white/15 text-gray-300 px-4 py-2 rounded-sm">Copy Link</button>
+      <button type="button" (click)="openSection()" class="bg-[#c9a96e] text-black font-semibold px-4 py-2 rounded-sm">Open</button>
+    </div>
+  </div>
+
+  <p *ngIf="copyMessage" class="text-green-400 text-sm">{{ copyMessage }}</p>
+  <p *ngIf="uploadError" class="text-red-400 text-sm">{{ uploadError }}</p>
+
+  <label
+    class="block border border-dashed border-[#2a2a2a] bg-[#111111] rounded-sm p-12 text-center cursor-pointer hover:border-[#c9a96e]/50"
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)">
+    <input type="file" multiple accept="image/*" class="hidden" (change)="onFilesSelected($event)" />
+    <span class="block text-4xl text-white mb-3">Upload</span>
+    <span class="block text-gray-400">Drop photos here or click to browse.</span>
+  </label>
+
+  <div *ngIf="uploadItems.length > 0" class="space-y-4">
+    <div class="flex items-center justify-between">
+      <p class="text-gray-300 text-sm">{{ uploadItems.length }} selected</p>
+      <button type="button" (click)="uploadAll()" [disabled]="isUploading" class="bg-[#c9a96e] text-black font-semibold px-5 py-2 rounded-sm disabled:opacity-50">
+        {{ isUploading ? 'Uploading...' : 'Upload All' }}
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+      <div *ngFor="let item of uploadItems; let i = index" class="relative aspect-[4/3] bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden">
+        <img [src]="item.preview" [alt]="item.file.name" class="w-full h-full object-cover" />
+        <button *ngIf="item.status === 'pending' || item.status === 'error'" type="button" (click)="removeItem(i)" class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 text-xs">X</button>
+        <div class="absolute left-0 right-0 bottom-0 bg-black/70 p-2 text-xs text-white">
+          <span>{{ item.status }}</span>
+          <span *ngIf="item.status === 'uploading'"> {{ item.progress }}%</span>
+          <p *ngIf="item.error" class="text-red-300">{{ item.error }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="space-y-4">
+    <h3 class="text-white font-semibold">Uploaded Section Images</h3>
+    <div *ngIf="assets.length === 0" class="border border-[#2a2a2a] bg-[#1a1a1a] rounded-sm p-8 text-center">
+      <p class="text-gray-400">No images uploaded to this portfolio section yet.</p>
+    </div>
+    <div *ngIf="assets.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+      <div *ngFor="let asset of assets" class="group relative aspect-square bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden">
+        <img [src]="buildThumb(asset)" alt="Portfolio section image" class="w-full h-full object-cover" loading="lazy" />
+        <div class="absolute top-2 left-2 bg-black/75 text-white px-2 py-1 text-xs" *ngIf="isHeroImage(asset)">Hero</div>
+        <div class="absolute inset-x-0 bottom-0 bg-black/80 p-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between gap-2">
+          <button type="button" (click)="setCover(asset, $event)" class="text-xs text-[#c9a96e]">Set Cover</button>
+          <button type="button" (click)="toggleHeroImage(asset, $event)" class="text-xs text-white">
+            {{ isHeroImage(asset) ? 'Remove Hero' : 'Add Hero' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+

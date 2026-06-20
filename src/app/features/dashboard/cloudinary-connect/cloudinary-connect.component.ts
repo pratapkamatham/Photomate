@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PhotographerService } from '../../../core/services/photographer.service';
-import { Photographer } from '../../../core/models/photographer.model';
-import { Functions, httpsCallable } from '@angular/fire/functions';
- 
+import { timeout } from 'rxjs/operators';
+
 @Component({
   selector: 'app-cloudinary-connect',
   templateUrl: './cloudinary-connect.component.html',
@@ -18,42 +17,55 @@ export class CloudinaryConnectComponent implements OnInit {
   errorMessage = '';
   isConnected = false;
   existingCloudName = '';
+  saveDebugMessage = '';
 
   constructor(
     private fb: FormBuilder,
-    private functions: Functions,
     private photographerService: PhotographerService
   ) {}
 
   ngOnInit(): void {
     this.cloudinaryForm = this.fb.group({
       cloudName: ['', Validators.required],
-      apiKey:    ['', Validators.required],
+      apiKey: ['', Validators.required],
       apiSecret: ['', Validators.required]
     });
+
     this.loadExistingConfig();
   }
 
-  get cloudName() { return this.cloudinaryForm.get('cloudName'); }
-  get apiKey()    { return this.cloudinaryForm.get('apiKey'); }
-  get apiSecret() { return this.cloudinaryForm.get('apiSecret'); }
+  get cloudName() {
+    return this.cloudinaryForm.get('cloudName');
+  }
+
+  get apiKey() {
+    return this.cloudinaryForm.get('apiKey');
+  }
+
+  get apiSecret() {
+    return this.cloudinaryForm.get('apiSecret');
+  }
 
   loadExistingConfig(): void {
     this.isLoading = true;
+
     this.photographerService.getMyProfile().subscribe({
       next: (profile) => {
         this.isLoading = false;
+
         if (profile?.cloudinary?.cloudName) {
           this.isConnected = true;
           this.existingCloudName = profile.cloudinary.cloudName;
+
           this.cloudinaryForm.patchValue({
             cloudName: profile.cloudinary.cloudName,
-            apiKey:    profile.cloudinary.apiKey
+            apiKey: profile.cloudinary.apiKey
           });
-          // Never pre-fill apiSecret
         }
       },
-      error: () => { this.isLoading = false; }
+      error: () => {
+        this.isLoading = false;
+      }
     });
   }
 
@@ -66,26 +78,47 @@ export class CloudinaryConnectComponent implements OnInit {
     this.isSaving = true;
     this.successMessage = '';
     this.errorMessage = '';
+    this.saveDebugMessage = 'Saving Cloudinary credentials...';
 
-    const { cloudName, apiKey, apiSecret } = this.cloudinaryForm.value;
+    const cloudName = this.cloudinaryForm.value.cloudName.trim();
+    const apiKey = this.cloudinaryForm.value.apiKey.trim();
+    const apiSecret = this.cloudinaryForm.value.apiSecret.trim();
+    const maskedApiKey = apiKey.replace(/\d(?=\d{4})/g, '*');
 
-    // FIX 3: Call Firebase Function to save secret securely
-    // Never save to Firestore directly from Angular
-    const saveFn = httpsCallable(
-      this.functions,
-      'saveCloudinaryConfig'
-    );
+    console.groupCollapsed('[Cloudinary Config] form submit');
+    console.table({
+      cloudName,
+      apiKey: maskedApiKey,
+      apiSecretLength: apiSecret.length
+    });
+    console.groupEnd();
 
-    saveFn({ cloudName, apiKey, apiSecret }).then(() => {
-      this.isSaving = false;
-      this.isConnected = true;
-      this.existingCloudName = cloudName;
-      this.successMessage = 'Cloudinary connected securely!';
-      this.cloudinaryForm.patchValue({ apiSecret: '' });
-    }).catch((err) => {
-      this.isSaving = false;
-      this.errorMessage = err.message || 'Failed to save. Please try again.';
+    this.photographerService.saveCloudinaryConfig({
+      cloudName,
+      apiKey,
+      apiSecret
+    }).pipe(
+      timeout(30000)
+    ).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.isConnected = true;
+        this.existingCloudName = cloudName;
+        this.successMessage = 'Cloudinary connected securely!';
+        this.saveDebugMessage = `Saved Cloudinary config for ${cloudName}.`;
+        this.cloudinaryForm.patchValue({ apiSecret: '' });
+        this.apiSecret?.markAsPristine();
+        this.apiSecret?.markAsUntouched();
+      },
+      error: (err) => {
+        console.error('[Cloudinary Config] save failed in component', err);
+        this.isSaving = false;
+        this.saveDebugMessage = '';
+        this.errorMessage =
+          err?.name === 'TimeoutError'
+            ? 'Saving timed out after 30 seconds. Check Firebase Function logs and try again.'
+            : err?.message || 'Failed to save. Please try again.';
+      }
     });
   }
-
 }

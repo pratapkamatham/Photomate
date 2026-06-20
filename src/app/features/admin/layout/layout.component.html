@@ -1,80 +1,58 @@
 <div class="flex h-screen bg-[#111111] overflow-hidden">
- 
-  <!-- SIDEBAR -->
   <aside
     [class.w-64]="isSidebarOpen"
     [class.w-16]="!isSidebarOpen"
-    class="flex flex-col bg-[#1a1a1a] border-r border-[#2a2a2a]
-           transition-all duration-300 ease-in-out shrink-0">
- 
-    <!-- Logo -->
+    class="flex flex-col bg-[#1a1a1a] border-r border-[#2a2a2a] transition-all duration-300 ease-in-out shrink-0">
+
     <div class="flex items-center h-16 px-4 border-b border-[#2a2a2a]">
-      <span *ngIf="isSidebarOpen"
-            class="text-lg font-bold text-white tracking-widest uppercase">
+      <span *ngIf="isSidebarOpen" class="text-lg font-bold text-white tracking-widest uppercase">
         Photo<span class="text-[#c9a96e]">Mate</span>
         <span class="text-xs text-gray-500 ml-2 normal-case">Admin</span>
       </span>
-      <span *ngIf="!isSidebarOpen"
-            class="text-lg font-bold text-[#c9a96e]">A</span>
+      <span *ngIf="!isSidebarOpen" class="text-lg font-bold text-[#c9a96e]">A</span>
     </div>
- 
-    <!-- Nav -->
-    <nav class="flex-1 py-6 space-y-1 px-2">
+
+    <nav class="flex-1 py-6 space-y-1 px-2 overflow-y-auto">
       <a
         *ngFor="let item of navItems"
         [routerLink]="item.route"
-        routerLinkActive="bg-[#c9a96e]/10 text-[#c9a96e]
-                          border-l-2 border-[#c9a96e]"
+        routerLinkActive="bg-[#c9a96e]/10 text-[#c9a96e] border-l-2 border-[#c9a96e]"
         [routerLinkActiveOptions]="{ exact: item.route === '/admin' }"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-sm
-               text-gray-400 hover:text-white hover:bg-white/5
-               transition-all duration-200 cursor-pointer no-underline">
-        <span class="text-lg shrink-0">{{ item.icon }}</span>
-        <span *ngIf="isSidebarOpen" class="text-sm font-medium truncate">
-          {{ item.label }}
-        </span>
+        class="flex items-center gap-3 px-3 py-2.5 rounded-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 cursor-pointer no-underline">
+        <span class="w-5 text-center text-sm font-semibold text-[#c9a96e] shrink-0">{{ item.icon }}</span>
+        <span *ngIf="isSidebarOpen" class="text-sm font-medium truncate">{{ item.label }}</span>
       </a>
     </nav>
- 
-    <!-- User + Logout -->
+
     <div class="border-t border-[#2a2a2a] p-4">
       <div *ngIf="isSidebarOpen" class="mb-3">
         <p class="text-xs text-[#c9a96e]">Super Admin</p>
         <p class="text-xs text-gray-500 truncate">{{ adminEmail }}</p>
       </div>
       <button
+        type="button"
         (click)="logout()"
-        class="flex items-center gap-3 w-full px-3 py-2 rounded-sm
-               text-gray-400 hover:text-red-400 hover:bg-red-400/5
-               transition-all duration-200 text-sm">
-        <span class="text-lg shrink-0">⎋</span>
+        class="flex items-center gap-3 w-full px-3 py-2 rounded-sm text-gray-400 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 text-sm">
+        <span class="w-5 text-center text-sm font-semibold shrink-0">Q</span>
         <span *ngIf="isSidebarOpen">Logout</span>
       </button>
     </div>
- 
   </aside>
- 
-  <!-- MAIN -->
-  <div class="flex flex-col flex-1 overflow-hidden">
- 
-    <!-- Topbar -->
-    <header class="flex items-center h-16 px-6 bg-[#1a1a1a]
-                   border-b border-[#2a2a2a] shrink-0">
-      <button
-        (click)="toggleSidebar()"
-        class="text-gray-400 hover:text-white transition-colors mr-4">
-        <span class="text-xl">☰</span>
+
+  <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+    <header class="flex items-center h-16 px-6 bg-[#1a1a1a] border-b border-[#2a2a2a] shrink-0">
+      <button type="button" (click)="toggleSidebar()" class="text-gray-400 hover:text-white transition-colors mr-4">
+        Menu
       </button>
-      <h1 class="text-white font-medium text-sm flex-1">
-        Admin Panel
-      </h1>
+      <h1 class="text-white font-medium text-sm flex-1">Admin Panel</h1>
     </header>
- 
-    <!-- Content -->
-    <main class="flex-1 overflow-y-auto p-6">
+
+    <main class="flex-1 overflow-y-auto p-6 admin-scroll">
       <router-outlet></router-outlet>
+      <footer class="app-footer mt-10">
+        <span>Powered by King Dany Pratap Web Solutions</span>
+        <span>Contact: 8019585256</span>
+      </footer>
     </main>
- 
   </div>
- 
 </div>

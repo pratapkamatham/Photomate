@@ -1,0 +1,75 @@
+<div class="space-y-6">
+  <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+    <div>
+      <h2 class="text-2xl font-semibold text-white">Portfolio Sections</h2>
+      <p class="text-sm text-gray-500 mt-1">
+        Showcase categories like Wedding Shots, Birthday Shoots, Pre-Wedding, Kids Shoots.
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button
+        *ngIf="photographerSlug"
+        type="button"
+        (click)="openPortfolio($event)"
+        class="border border-[#c9a96e]/40 text-[#c9a96e] px-4 py-2.5 rounded-sm hover:bg-[#c9a96e]/10 transition-colors">
+        View Portfolio
+      </button>
+      <button
+        type="button"
+        (click)="createSection()"
+        class="flex items-center gap-2 bg-[#c9a96e] text-black font-semibold px-5 py-2.5 rounded-sm hover:bg-[#b8935a] transition-colors">
+        <span>+</span>
+        New Section
+      </button>
+    </div>
+  </div>
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div *ngIf="errorMessage" class="text-red-400 text-sm">{{ errorMessage }}</div>
+
+  <div *ngIf="!isLoading && sections.length === 0" class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-16 text-center">
+    <p class="text-4xl mb-4">PM</p>
+    <h3 class="text-white font-medium mb-2">No portfolio sections yet</h3>
+    <p class="text-gray-500 text-sm mb-6">Create separate public showcase sections for each shoot category.</p>
+    <button
+      type="button"
+      (click)="createSection()"
+      class="bg-[#c9a96e] text-black font-semibold px-6 py-2.5 rounded-sm hover:bg-[#b8935a] transition-colors">
+      Create First Section
+    </button>
+  </div>
+
+  <div *ngIf="!isLoading && sections.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div
+      *ngFor="let section of sections"
+      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm overflow-hidden hover:border-[#c9a96e]/40 transition-colors group cursor-pointer"
+      (click)="upload(section)">
+      <div class="h-44 bg-[#111111] flex items-center justify-center border-b border-[#2a2a2a]">
+        <span *ngIf="!section.coverImage" class="text-4xl text-gray-700">PM</span>
+        <img *ngIf="section.coverImage" [src]="section.coverImage" [alt]="section.title" class="w-full h-full object-cover" />
+      </div>
+
+      <div class="p-4">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <h3 class="text-white font-medium text-sm truncate group-hover:text-[#c9a96e] transition-colors">{{ section.title }}</h3>
+            <p class="text-gray-500 text-xs mt-0.5 truncate">/{{ section.slug }}</p>
+          </div>
+          <span *ngIf="section.isPrivate" class="shrink-0 text-xs px-2 py-0.5 bg-[#2a2a2a] text-gray-400 rounded-sm">Private</span>
+        </div>
+
+        <p *ngIf="!section.isPrivate && photographerSlug" class="mt-3 text-[11px] text-gray-500 truncate">
+          {{ sectionUrl(section) }}
+        </p>
+
+        <div class="grid grid-cols-2 gap-2 mt-4">
+          <button type="button" (click)="upload(section); $event.stopPropagation()" class="text-xs border border-[#c9a96e]/40 text-[#c9a96e] py-1.5 rounded-sm hover:bg-[#c9a96e]/10">Upload</button>
+          <button type="button" *ngIf="!section.isPrivate" (click)="openSection(section, $event)" class="text-xs border border-white/15 text-gray-300 py-1.5 rounded-sm hover:bg-white/10">Open</button>
+          <button type="button" *ngIf="!section.isPrivate" (click)="copySection(section, $event)" class="text-xs border border-white/15 text-gray-300 py-1.5 rounded-sm hover:bg-white/10">Copy Link</button>
+          <button type="button" (click)="delete(section, $event)" class="text-xs border border-red-500/30 text-red-400 py-1.5 rounded-sm hover:bg-red-500/10">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

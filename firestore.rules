@@ -2,10 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -----------------------------------------------
-    // HELPER FUNCTIONS
-    // -----------------------------------------------
-
     function isAuth() {
       return request.auth != null;
     }
@@ -29,54 +25,44 @@ service cloud.firestore {
     function isPhotographerOwner(photographerId) {
       return isAuth() &&
         exists(/databases/$(database)/documents/photographers/$(photographerId)) &&
-        get(/databases/$(database)/documents/photographers/$(photographerId)).data.ownerUid
-          == request.auth.uid;
+        get(/databases/$(database)/documents/photographers/$(photographerId)).data.ownerUid == request.auth.uid;
     }
 
+    function isPublicGallery(galleryId) {
+      return exists(/databases/$(database)/documents/galleries/$(galleryId)) &&
+        (
+          !('isPrivate' in get(/databases/$(database)/documents/galleries/$(galleryId)).data)
+          || get(/databases/$(database)/documents/galleries/$(galleryId)).data.isPrivate == false
+        );
+    }
 
-    // -----------------------------------------------
-    // SYSTEM COLLECTION
-    // -----------------------------------------------
     match /system/{docId} {
       allow read: if isSuperAdmin();
       allow write: if !exists(/databases/$(database)/documents/system/initial_seed) || isSuperAdmin();
     }
 
-
-    // -----------------------------------------------
-    // USERS COLLECTION
-    // -----------------------------------------------
     match /users/{uid} {
       allow read: if isOwner(uid) || isSuperAdmin();
       allow create: if isOwner(uid) && request.resource.data.role == 'photographer';
-      
-      // UPGRADE: యూజర్ తన వివరాలు (పేరు మొదలైనవి) మార్చుకోవచ్చు, కానీ తన రోల్ ని మార్చలేడు
       allow update: if isSuperAdmin() || (
         isOwner(uid) && request.resource.data.role == resource.data.role
       );
       allow delete: if false;
     }
 
-
-    // -----------------------------------------------
-    // PHOTOGRAPHERS COLLECTION
-    // -----------------------------------------------
     match /photographers/{photographerId} {
       allow read: if true;
       allow create: if isAuth() && request.resource.data.ownerUid == request.auth.uid;
       allow update: if isAuth() && (
-        (resource.data.ownerUid == request.auth.uid && request.resource.data.ownerUid == resource.data.ownerUid) 
+        (resource.data.ownerUid == request.auth.uid && request.resource.data.ownerUid == resource.data.ownerUid)
         || isSuperAdmin()
       );
       allow delete: if isSuperAdmin();
     }
 
-
-    // -----------------------------------------------
-    // GALLERIES COLLECTION
-    // -----------------------------------------------
     match /galleries/{galleryId} {
-      allow read: if resource.data.isPrivate == false
+      allow read: if !('isPrivate' in resource.data)
+        || resource.data.isPrivate == false
         || isSuperAdmin()
         || (isAuth() && isPhotographerOwner(resource.data.photographerId));
 
@@ -85,44 +71,77 @@ service cloud.firestore {
       allow delete: if isAuth() && (isPhotographerOwner(resource.data.photographerId) || isSuperAdmin());
     }
 
-
-    // -----------------------------------------------
-    // MEDIA ASSETS COLLECTION
-    // -----------------------------------------------
     match /mediaAssets/{mediaId} {
-      // UPGRADE: కేవలం పబ్లిక్ గ్యాలరీ కి సంబంధించిన మీడియా మాత్రమే ఎవరైనా చూడగలరు, ప్రైవేట్ ది చూడలేరు
-      allow read: if resource.data.isPrivate == false 
-        || isSuperAdmin() 
+      allow read: if isPublicGallery(resource.data.galleryId)
+        || isSuperAdmin()
         || (isAuth() && isPhotographerOwner(resource.data.photographerId));
-        
+
       allow create: if isAuth() && isPhotographerOwner(request.resource.data.photographerId);
       allow update: if isAuth() && isPhotographerOwner(resource.data.photographerId);
       allow delete: if isAuth() && (isPhotographerOwner(resource.data.photographerId) || isSuperAdmin());
     }
 
+    match /portfolioSections/{sectionId} {
+      allow read: if !('isPrivate' in resource.data)
+        || resource.data.isPrivate == false
+        || isSuperAdmin()
+        || (isAuth() && isPhotographerOwner(resource.data.photographerId));
 
-    // -----------------------------------------------
-    // SUBSCRIPTIONS COLLECTION
-    // -----------------------------------------------
+      allow create: if isAuth() && isPhotographerOwner(request.resource.data.photographerId);
+      allow update: if isAuth() && isPhotographerOwner(resource.data.photographerId);
+      allow delete: if isAuth() && (isPhotographerOwner(resource.data.photographerId) || isSuperAdmin());
+    }
+
+    match /portfolioAssets/{assetId} {
+      allow read: if exists(/databases/$(database)/documents/portfolioSections/$(resource.data.sectionId))
+        && (
+          !('isPrivate' in get(/databases/$(database)/documents/portfolioSections/$(resource.data.sectionId)).data)
+          || get(/databases/$(database)/documents/portfolioSections/$(resource.data.sectionId)).data.isPrivate == false
+          || isSuperAdmin()
+          || (isAuth() && isPhotographerOwner(resource.data.photographerId))
+        );
+
+      allow create: if isAuth() && isPhotographerOwner(request.resource.data.photographerId);
+      allow update: if isAuth() && isPhotographerOwner(resource.data.photographerId);
+      allow delete: if isAuth() && (isPhotographerOwner(resource.data.photographerId) || isSuperAdmin());
+    }
+    match /leads/{leadId} {
+      allow create: if request.resource.data.photographerId is string
+        && request.resource.data.photographerSlug is string
+        && request.resource.data.name is string
+        && request.resource.data.status == 'new';
+
+      allow read, update, delete: if isSuperAdmin()
+        || (isAuth() && isPhotographerOwner(resource.data.photographerId));
+    }
+
+    match /affiliates/{affiliateId} {
+      allow read: if isSuperAdmin() || isOwner(affiliateId);
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /affiliate_codes/{codeId} {
+      allow read: if true;
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /sales/{saleId} {
+      allow read: if isSuperAdmin()
+        || (isAuth() && resource.data.affiliateId == request.auth.uid);
+      allow create, update, delete: if isSuperAdmin();
+    }
     match /subscriptions/{subscriptionId} {
       allow read: if isAuth() && (isPhotographerOwner(resource.data.photographerId) || isSuperAdmin());
       allow create, update, delete: if isSuperAdmin();
     }
 
-
-    // -----------------------------------------------
-    // FAVORITES COLLECTION
-    // -----------------------------------------------
     match /favorites/{favoriteId} {
       allow read: if true;
-      
-      // UPGRADE: స్ప్యామ్ క్రియేషన్స్ ఆపడానికి క్లయింట్ టోకెన్ మరియు అవసరమైన ఫీల్డ్స్ ఖచ్చితంగా ఉండాలి
-      allow create: if request.resource.data.clientToken != null 
+      allow create: if request.resource.data.clientToken != null
         && request.resource.data.mediaId != null;
-        
       allow update: if false;
       allow delete: if isSuperAdmin();
     }
-
   }
 }
+

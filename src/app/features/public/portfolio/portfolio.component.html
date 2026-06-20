@@ -1,152 +1,163 @@
 <div
   *ngIf="notFound && !isLoading"
-  class="min-h-screen bg-[#111111] flex flex-col
-         items-center justify-center px-4 text-center">
-  <p class="text-6xl mb-6">📷</p>
-  <h2 class="text-2xl font-semibold text-white mb-2">
-    Portfolio Not Found
-  </h2>
+  class="min-h-screen bg-[#111111] flex flex-col items-center justify-center px-4 text-center">
+  <p class="text-5xl mb-6">PM</p>
+  <h2 class="text-2xl font-semibold text-white mb-2">Portfolio Not Found</h2>
   <p class="text-gray-400 text-sm max-w-sm">
-    The photographer you're looking for doesn't exist
-    or is no longer active on PhotoMate.
+    The photographer you are looking for does not exist or is no longer active on PhotoMate.
   </p>
 </div>
- 
-<div *ngIf="isLoading"
-     class="min-h-screen bg-[#111111]">
+
+<div *ngIf="isLoading" class="min-h-screen bg-[#111111]">
   <app-loader></app-loader>
 </div>
- 
+
 <div
   *ngIf="!isLoading && !notFound && photographer"
-  class="min-h-screen"
-  [style.background-color]="photographer.theme.backgroundColor || '#111111'"
+  class="min-h-screen portfolio-page"
+  [style.background-color]="photographer.theme.backgroundColor || '#0d0d0d'"
   [style.color]="photographer.theme.textColor || '#ffffff'"
   [style.font-family]="photographer.theme.font || 'Poppins'">
- 
-  <section
-    class="border-b"
-    [style.border-color]="(photographer.theme.accentColor || '#c9a96e') + '30'">
- 
-    <div class="max-w-5xl mx-auto px-6 py-20 text-center">
- 
-      <h1 class="text-4xl md:text-6xl font-bold tracking-tight mb-4">
-        {{ photographer.studioName }}
-      </h1>
- 
-      <div
-        class="w-16 h-0.5 mx-auto mb-6"
-        [style.background-color]="photographer.theme.accentColor || '#c9a96e'">
-      </div>
- 
-      <p
-        *ngIf="photographer.bio"
-        class="text-lg max-w-2xl mx-auto leading-relaxed opacity-70">
-        {{ photographer.bio }}
+
+  <header class="portfolio-nav">
+    <button type="button" class="brand-mark no-underline" [attr.aria-label]="photographer.studioName" (click)="scrollToSection('home', $event)">
+      <img *ngIf="photographer.logoUrl" [src]="photographer.logoUrl" [alt]="photographer.studioName" />
+      <span *ngIf="!photographer.logoUrl">{{ studioInitials }}</span>
+      <strong>{{ photographer.studioName }}</strong>
+    </button>
+
+    <nav class="portfolio-links">
+      <button type="button" (click)="scrollToSection('home', $event)">Home</button>
+      <button type="button" (click)="scrollToSection('about', $event)">About</button>
+      <button type="button" (click)="scrollToSection('portfolio', $event)">Portfolio</button>
+      <button type="button" (click)="scrollToSection('contact', $event)">Contact</button>
+    </nav>
+  </header>
+
+  <section id="home" class="portfolio-hero">
+    <ng-container *ngIf="heroImages.length > 0; else emptyHero">
+      <img
+        *ngFor="let image of heroImages; let i = index"
+        [src]="buildHeroImage(image)"
+        [alt]="photographer.studioName"
+        class="portfolio-hero-image"
+        [class.is-active]="i === activeHeroIndex"
+      />
+    </ng-container>
+    <ng-template #emptyHero>
+      <div class="portfolio-hero-empty"></div>
+    </ng-template>
+    <div class="portfolio-hero-shade"></div>
+
+    <div class="portfolio-hero-content">
+      <p class="eyebrow">Excellence through the lens</p>
+      <h1>{{ photographer.studioName }}</h1>
+      <p class="hero-subtitle">
+        {{ photographer.bio || 'Premium event photography, public portfolio stories, and client-ready albums.' }}
       </p>
- 
-      <div class="flex items-center justify-center gap-6 mt-8
-                  flex-wrap">
-        <a
-          *ngIf="photographer.phone"
-          [href]="'tel:' + photographer.phone"
-          class="text-sm hover:underline no-underline transition-opacity
-                 hover:opacity-100 opacity-70"
-          [style.color]="photographer.theme.accentColor || '#c9a96e'">
-          📞 {{ photographer.phone }}
-        </a>
-        <a
-          *ngIf="photographer.email"
-          [href]="'mailto:' + photographer.email"
-          class="text-sm hover:underline no-underline transition-opacity
-                 hover:opacity-100 opacity-70"
-          [style.color]="photographer.theme.accentColor || '#c9a96e'">
-          ✉ {{ photographer.email }}
-        </a>
+      <div class="hero-actions">
+        <button type="button" class="primary-action no-underline" (click)="scrollToSection('portfolio', $event)" [style.background-color]="photographer.theme.accentColor || '#c9a96e'">
+          Explore Portfolio
+        </button>
+        <button type="button" class="secondary-action no-underline" (click)="scrollToSection('contact', $event)">
+          Book This Photographer
+        </button>
       </div>
- 
+    </div>
+
+    <div class="portfolio-count">{{ portfolioStats }}</div>
+    <div *ngIf="heroImages.length > 1" class="portfolio-hero-dots" aria-label="Portfolio hero images">
+      <button
+        type="button"
+        *ngFor="let image of heroImages; let i = index"
+        [class.is-active]="i === activeHeroIndex"
+        (click)="setActiveHero(i)"
+        [attr.aria-label]="'Show hero image ' + (i + 1)">
+      </button>
     </div>
   </section>
- 
-  <section class="max-w-6xl mx-auto px-6 py-16">
- 
-    <p class="text-xs font-medium uppercase tracking-widest
-              mb-10 text-center opacity-40">
-      Portfolio
-    </p>
- 
-    <div *ngIf="galleries.length === 0"
-         class="text-center py-20 opacity-40">
-      <p>No galleries published yet.</p>
+
+  <section id="about" class="portfolio-section portfolio-about">
+    <div>
+      <p class="section-kicker">About</p>
+      <h2>Portfolio sections for every shoot category this studio wants to showcase.</h2>
     </div>
- 
-    <div
-      *ngIf="galleries.length > 0"
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
- 
-      <div
+    <p>
+      Each tile below is a public portfolio section. Create one section for Wedding Shots, Pre-Wedding, Birthday Shoots, Kids Shoots, or any service you want to showcase, then upload only related images into that section.
+    </p>
+  </section>
+
+  <section id="portfolio" class="portfolio-section">
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">Portfolio</p>
+        <h2>Portfolio Sections</h2>
+      </div>
+      <p>{{ galleries.length }} public section{{ galleries.length === 1 ? '' : 's' }}</p>
+    </div>
+
+    <div *ngIf="galleries.length === 0" class="empty-portfolio">
+      <p>No public portfolio sections published yet.</p>
+    </div>
+
+    <div *ngIf="galleries.length > 0" class="portfolio-grid">
+      <button
+        type="button"
         *ngFor="let gallery of galleries"
         (click)="goToGallery(gallery)"
-        class="group cursor-pointer">
- 
-        <div class="relative overflow-hidden rounded-sm aspect-[4/3]
-                    border border-white/5
-                    group-hover:border-white/20 transition-all duration-300"
-             [style.background-color]="(photographer.theme.accentColor || '#c9a96e') + '10'">
- 
-          <img
-            *ngIf="gallery.coverImage"
-            [src]="buildThumbnail(gallery.coverImage)"
-            [alt]="gallery.title"
-            class="w-full h-full object-cover transition-transform
-                   duration-700 group-hover:scale-105"
-            loading="lazy"
-          />
- 
-          <div
-            *ngIf="!gallery.coverImage"
-            class="w-full h-full flex items-center justify-center
-                   opacity-20">
-            <span class="text-5xl">◫</span>
-          </div>
- 
-          <div class="absolute inset-0 bg-black/40 opacity-0
-                      group-hover:opacity-100 transition-opacity
-                      duration-300 flex items-end p-5">
-            <span class="text-white text-sm font-medium">
-              View Gallery →
-            </span>
-          </div>
- 
+        class="portfolio-card">
+        <img
+          *ngIf="galleryImage(gallery)"
+          [src]="buildThumbnail(galleryImage(gallery))"
+          [alt]="gallery.title"
+          loading="lazy"
+        />
+        <div *ngIf="!galleryImage(gallery)" class="card-placeholder">PM</div>
+        <div class="card-overlay"></div>
+        <div class="card-copy">
+          <p>Portfolio Section</p>
+          <h3>{{ gallery.title }}</h3>
+          <span>Open Section</span>
         </div>
- 
-        <div class="mt-3 px-1">
-          <h3 class="font-medium transition-opacity duration-200
-                     group-hover:opacity-70">
-            {{ gallery.title }}
-          </h3>
-          <p *ngIf="gallery.description"
-             class="text-sm mt-0.5 opacity-40 truncate">
-            {{ gallery.description }}
-          </p>
-        </div>
- 
-      </div>
- 
+      </button>
     </div>
- 
   </section>
- 
-  <footer
-    class="border-t py-8 text-center"
-    [style.border-color]="(photographer.theme.accentColor || '#c9a96e') + '20'">
-    <p class="text-xs opacity-30">
-      Powered by
-      <span [style.color]="photographer.theme.accentColor || '#c9a96e'"
-            class="opacity-100">
-        PhotoMate
-      </span>
-    </p>
+
+  <section id="contact" class="portfolio-section contact-section">
+    <div>
+      <p class="section-kicker">Contact</p>
+      <h2>Want this photographer for your event?</h2>
+      <p class="contact-copy">
+        Send a quick inquiry. The studio receives this lead from their PhotoMate portfolio.
+      </p>
+
+      <div class="contact-links">
+        <a *ngIf="photographer.phone" [href]="'tel:' + photographer.phone">{{ photographer.phone }}</a>
+        <a *ngIf="photographer.email" [href]="'mailto:' + photographer.email">{{ photographer.email }}</a>
+      </div>
+    </div>
+
+    <form [formGroup]="leadForm" (ngSubmit)="submitLead()" class="lead-form">
+      <input formControlName="name" type="text" placeholder="Your name" />
+      <input formControlName="phone" type="tel" placeholder="Phone number" />
+      <input formControlName="email" type="email" placeholder="Email address" class="wide" />
+      <textarea formControlName="message" rows="4" placeholder="Tell us about your event" class="wide"></textarea>
+
+      <div class="wide form-footer">
+        <button
+          type="submit"
+          [disabled]="isSubmittingLead"
+          [style.background-color]="photographer.theme.accentColor || '#c9a96e'">
+          {{ isSubmittingLead ? 'Sending...' : 'Send Inquiry' }}
+        </button>
+        <p *ngIf="leadSuccess" class="success-message">Inquiry sent successfully.</p>
+        <p *ngIf="leadError" class="error-message">{{ leadError }}</p>
+      </div>
+    </form>
+  </section>
+
+  <footer class="app-footer">
+    <span>Powered by King Dany Pratap Web Solutions</span>
+    <span>Contact: 8019585256</span>
   </footer>
- 
 </div>

@@ -19,6 +19,7 @@ import {
   Auth,
   createUserWithEmailAndPassword
 } from '@angular/fire/auth';
+import { Functions, httpsCallable } from '@angular/fire/functions';
 import { Observable, from, of, switchMap } from 'rxjs';
 import {
   Affiliate,
@@ -26,6 +27,7 @@ import {
   Sale,
   CouponValidation
 } from '../models/affiliate.model';
+import { User, UserRole } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -34,8 +36,78 @@ export class AffiliateService {
 
   constructor(
     private firestore: Firestore,
-    private auth: Auth
+    private auth: Auth,
+    private functions: Functions
   ) {}
+
+
+  getUsersByRole(role: UserRole): Observable<User[]> {
+    const ref = collection(this.firestore, 'users');
+    const q = query(ref, where('role', '==', role));
+
+    return from(getDocs(q)).pipe(
+      switchMap(snapshot => of(
+        snapshot.docs
+          .map(item => item.data() as User)
+          .sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email))
+      ))
+    );
+  }
+
+  createPlatformUser(data: {
+    name: string;
+    email: string;
+    phone: string;
+    role: UserRole;
+  }): Observable<{ uid: string; temporaryPassword: string; role: UserRole }> {
+    const createUser = httpsCallable(this.functions, 'createPlatformUser');
+
+    return from(createUser(data)).pipe(
+      switchMap((result: any) => of(result.data as {
+        uid: string;
+        temporaryPassword: string;
+        role: UserRole;
+      }))
+    );
+  }
+  // -----------------------------------------------
+  // CREATE / UPDATE AFFILIATE PROFILE FOR EXISTING UID (admin)
+  // Safer than creating Auth users from the admin browser.
+  // -----------------------------------------------
+  createAffiliateProfile(
+    ownerUid: string,
+    name: string,
+    email: string,
+    phone: string,
+    commissionRate: number,
+    targetCount: number
+  ): Observable<void> {
+    const uid = ownerUid.trim();
+    const userRef = doc(this.firestore, `users/${uid}`);
+    const affiliateRef = doc(this.firestore, `affiliates/${uid}`);
+
+    return from(setDoc(userRef, {
+      uid,
+      email,
+      role: 'affiliate',
+      updatedAt: serverTimestamp()
+    }, { merge: true })).pipe(
+      switchMap(() => from(setDoc(affiliateRef, {
+        ownerUid: uid,
+        name,
+        email,
+        phone,
+        commissionRate,
+        targetCount,
+        currentCount: 0,
+        totalEarnings: 0,
+        pendingPayout: 0,
+        isActive: true,
+        updatedAt: serverTimestamp(),
+        createdAt: serverTimestamp()
+      }, { merge: true })))
+    );
+  }
 
   // -----------------------------------------------
   // CREATE AFFILIATE USER (admin only)
@@ -272,6 +344,35 @@ export class AffiliateService {
     );
   }
 
+  getActiveCode(code: string): Observable<{ affiliate: Affiliate; affiliateCode: AffiliateCode } | null> {
+    const ref = collection(this.firestore, 'affiliate_codes');
+    const q = query(
+      ref,
+      where('code', '==', code.toUpperCase()),
+      where('isActive', '==', true)
+    );
+
+    return from(getDocs(q)).pipe(
+      switchMap(snapshot => {
+        if (snapshot.empty) return of(null);
+        const affiliateCode = {
+          id: snapshot.docs[0].id,
+          ...snapshot.docs[0].data()
+        } as AffiliateCode;
+        const affiliateRef = doc(this.firestore, `affiliates/${affiliateCode.affiliateId}`);
+        return from(getDoc(affiliateRef)).pipe(
+          switchMap(affiliateSnap => {
+            if (!affiliateSnap.exists()) return of(null);
+            return of({
+              affiliate: { id: affiliateSnap.id, ...affiliateSnap.data() } as Affiliate,
+              affiliateCode
+            });
+          })
+        );
+      })
+    );
+  }
+
   // -----------------------------------------------
   // RECORD SALE (on admin subscription activation)
   // -----------------------------------------------
@@ -376,3 +477,4 @@ export class AffiliateService {
   }
 
 }
+

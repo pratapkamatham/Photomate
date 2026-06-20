@@ -7,5 +7,6 @@ export const environment = {
     storageBucket: 'photomate-108a8.firebasestorage.app',
     messagingSenderId: '353373607289',
     appId: '1:353373607289:web:fead921ce93b7c8a814ba8'
-  }
+  },
+  functionsRegion:'asia-south1'
 };

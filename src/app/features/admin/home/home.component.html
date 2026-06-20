@@ -1,65 +1,68 @@
 <div class="space-y-8">
- 
-  <!-- Header -->
-  <div>
-    <h2 class="text-2xl font-semibold text-white">Platform Overview</h2>
-    <p class="text-gray-400 text-sm mt-1">
-      PhotoMate Super Admin Dashboard
-    </p>
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h2 class="text-2xl font-semibold text-white">Platform Overview</h2>
+      <p class="text-gray-400 text-sm mt-1">PhotoMate Super Admin Dashboard</p>
+    </div>
+    <button
+      type="button"
+      (click)="loadStats()"
+      [disabled]="isLoading"
+      class="px-4 py-2 border border-[#2a2a2a] text-gray-300 hover:text-white hover:border-[#c9a96e]/60 rounded-sm text-sm disabled:opacity-50">
+      {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+    </button>
   </div>
- 
-  <!-- Stats -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+  <div *ngIf="errorMessage" class="bg-red-900/25 border border-red-500/30 text-red-300 rounded-sm px-4 py-3 text-sm">
+    {{ errorMessage }}
+  </div>
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div *ngIf="!isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div
       *ngFor="let stat of stats"
-      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5
-             hover:border-[#c9a96e]/30 transition-colors duration-200">
-      <span class="text-2xl text-[#c9a96e]">{{ stat.icon }}</span>
+      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5 hover:border-[#c9a96e]/30 transition-colors duration-200">
+      <span class="inline-flex h-10 w-10 items-center justify-center border border-[#c9a96e]/30 text-[#c9a96e] rounded-sm text-sm font-bold">
+        {{ stat.icon }}
+      </span>
       <p class="text-2xl font-bold text-white mt-3">{{ stat.value }}</p>
       <p class="text-xs text-gray-500 mt-1">{{ stat.label }}</p>
     </div>
   </div>
- 
-  <!-- Quick Links -->
+
   <div>
-    <h3 class="text-sm font-medium text-gray-400 uppercase
-               tracking-wider mb-4">
-      Manage
-    </h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
- 
-      <a routerLink="/admin/photographers"
-         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a]
-                rounded-sm p-5 hover:border-[#c9a96e]/50 transition-colors
-                no-underline group">
-        <span class="text-2xl text-[#c9a96e]">◫</span>
+    <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Manage</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+      <a
+        routerLink="/admin/photographers"
+        class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5 hover:border-[#c9a96e]/50 transition-colors no-underline group">
+        <span class="inline-flex h-10 w-10 items-center justify-center border border-[#c9a96e]/30 text-[#c9a96e] rounded-sm text-sm font-bold">P</span>
         <div>
-          <p class="text-white text-sm font-medium
-                    group-hover:text-[#c9a96e] transition-colors">
-            Photographers
-          </p>
-          <p class="text-gray-500 text-xs">
-            Manage accounts and subscriptions
-          </p>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">Photographers</p>
+          <p class="text-gray-500 text-xs">Manage accounts and access</p>
         </div>
       </a>
- 
-      <a routerLink="/admin/subscriptions"
-         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a]
-                rounded-sm p-5 hover:border-[#c9a96e]/50 transition-colors
-                no-underline group">
-        <span class="text-2xl text-[#c9a96e]">★</span>
+
+      <a
+        routerLink="/admin/subscriptions"
+        class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5 hover:border-[#c9a96e]/50 transition-colors no-underline group">
+        <span class="inline-flex h-10 w-10 items-center justify-center border border-[#c9a96e]/30 text-[#c9a96e] rounded-sm text-sm font-bold">S</span>
         <div>
-          <p class="text-white text-sm font-medium
-                    group-hover:text-[#c9a96e] transition-colors">
-            Subscriptions
-          </p>
-          <p class="text-gray-500 text-xs">
-            View and manage plans
-          </p>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">Subscriptions</p>
+          <p class="text-gray-500 text-xs">View and manage plans</p>
         </div>
       </a>
- 
+
+      <a
+        routerLink="/admin/settings"
+        class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5 hover:border-[#c9a96e]/50 transition-colors no-underline group">
+        <span class="inline-flex h-10 w-10 items-center justify-center border border-[#c9a96e]/30 text-[#c9a96e] rounded-sm text-sm font-bold">G</span>
+        <div>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">Settings</p>
+          <p class="text-gray-500 text-xs">Pricing and platform controls</p>
+        </div>
+      </a>
     </div>
   </div>
-  </div>
+</div>

@@ -1,72 +1,57 @@
 <div class="space-y-6">
- 
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-4">
     <h2 class="text-2xl font-semibold text-white">Photographers</h2>
+    <button
+      type="button"
+      (click)="loadPhotographers()"
+      [disabled]="isLoading"
+      class="px-4 py-2 border border-[#2a2a2a] text-gray-300 hover:text-white hover:border-[#c9a96e]/60 rounded-sm text-sm disabled:opacity-50">
+      Refresh
+    </button>
   </div>
- 
-  <!-- Loading -->
+
+  <div *ngIf="errorMessage" class="bg-red-900/25 border border-red-500/30 text-red-300 rounded-sm px-4 py-3 text-sm">
+    {{ errorMessage }}
+  </div>
+
   <app-loader *ngIf="isLoading"></app-loader>
- 
-  <!-- Empty -->
+
   <div
-    *ngIf="!isLoading && photographers.length === 0"
-    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-12
-           text-center">
+    *ngIf="!isLoading && !errorMessage && photographers.length === 0"
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-12 text-center">
     <p class="text-gray-400">No photographers registered yet.</p>
   </div>
- 
-  <!-- Table -->
+
   <div
     *ngIf="!isLoading && photographers.length > 0"
-    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm overflow-hidden">
- 
-    <table class="w-full text-sm">
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm overflow-x-auto">
+    <table class="w-full min-w-[720px] text-sm">
       <thead>
         <tr class="border-b border-[#2a2a2a]">
-          <th class="text-left px-5 py-3 text-gray-400 font-medium">
-            Studio
-          </th>
-          <th class="text-left px-5 py-3 text-gray-400 font-medium">
-            Slug
-          </th>
-          <th class="text-left px-5 py-3 text-gray-400 font-medium">
-            Plan
-          </th>
-          <th class="text-left px-5 py-3 text-gray-400 font-medium">
-            Status
-          </th>
-          <th class="text-left px-5 py-3 text-gray-400 font-medium">
-            Actions
-          </th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">Studio</th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">Slug</th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">Plan</th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">Status</th>
+          <th class="text-left px-5 py-3 text-gray-400 font-medium">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr
-          *ngFor="let p of photographers"
-          class="border-b border-[#2a2a2a] hover:bg-white/5
-                 transition-colors">
-          <td class="px-5 py-4 text-white font-medium">
-            {{ p.studioName || '—' }}
-          </td>
-          <td class="px-5 py-4 text-gray-400">
-            /{{ p.slug }}
-          </td>
+        <tr *ngFor="let p of photographers" class="border-b border-[#2a2a2a] hover:bg-white/5 transition-colors">
+          <td class="px-5 py-4 text-white font-medium">{{ p.studioName || '-' }}</td>
+          <td class="px-5 py-4 text-gray-400">/{{ p.slug }}</td>
           <td class="px-5 py-4">
-            <span class="px-2 py-1 rounded-sm text-xs font-medium
-                         bg-[#c9a96e]/10 text-[#c9a96e]">
+            <span class="px-2 py-1 rounded-sm text-xs font-medium bg-[#c9a96e]/10 text-[#c9a96e]">
               {{ p.subscriptionPlan || 'none' }}
             </span>
           </td>
           <td class="px-5 py-4">
-            <span
-              [class.text-green-400]="p.isActive"
-              [class.text-red-400]="!p.isActive"
-              class="text-xs font-medium">
+            <span [class.text-green-400]="p.isActive" [class.text-red-400]="!p.isActive" class="text-xs font-medium">
               {{ p.isActive ? 'Active' : 'Suspended' }}
             </span>
           </td>
           <td class="px-5 py-4">
             <button
+              type="button"
               (click)="toggleActive(p)"
               class="text-xs px-3 py-1 rounded-sm border transition-colors"
               [class.border-red-500]="p.isActive"
@@ -79,7 +64,5 @@
         </tr>
       </tbody>
     </table>
- 
   </div>
- 
 </div>

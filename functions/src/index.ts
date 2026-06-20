@@ -1,9 +1,11 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions/v1';
 import * as admin from 'firebase-admin';
 import * as crypto from 'crypto';
 
+
 admin.initializeApp();
 const db = admin.firestore();
+
 
 // -----------------------------------------------
 // HELPER: Structured logging
@@ -15,6 +17,10 @@ function logInfo(fn: string, msg: string, data?: any): void {
 
 function logError(fn: string, msg: string, err?: any): void {
   console.error(JSON.stringify({ fn, msg, err: err?.message, ts: new Date().toISOString() }));
+}
+
+function isCallableError(err: any): boolean {
+  return err instanceof functions.https.HttpsError;
 }
 
 // -----------------------------------------------
@@ -30,7 +36,7 @@ function sanitizeSlug(input: string): string {
 // FIX 1: SHA1 (not SHA256) - Cloudinary requires SHA1
 // FIX 2: Node 20
 // FIX 3: API secret from Firestore subcollection
-//         (Functions Admin SDK bypasses rules)
+//        (Functions Admin SDK bypasses rules)
 // FIX 4: Server controls folder, client sends galleryId only
 // FIX 5: File type + size enforced via signed params
 // FIX 14: Upload restrictions enforced server-side
@@ -38,7 +44,7 @@ function sanitizeSlug(input: string): string {
 // -----------------------------------------------
 export const generateCloudinarySignature = functions
   .region('asia-south1')
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: any, context: functions.https.CallableContext) => { // 🚀 Explicitly typed parameters
 
     const FN = 'generateCloudinarySignature';
 
@@ -65,7 +71,7 @@ export const generateCloudinarySignature = functions
         );
       }
     } catch (err: any) {
-      if (err.code) throw err;
+      if (isCallableError(err)) throw err;
       logError(FN, 'User lookup failed', err);
       throw new functions.https.HttpsError('internal', 'User verification failed.');
     }
@@ -110,7 +116,7 @@ export const generateCloudinarySignature = functions
       }
 
     } catch (err: any) {
-      if (err.code) throw err;
+      if (isCallableError(err)) throw err;
       logError(FN, 'Photographer lookup failed', err);
       throw new functions.https.HttpsError('internal', 'Profile lookup failed.');
     }
@@ -129,9 +135,25 @@ export const generateCloudinarySignature = functions
       );
     }
 
-    const apiSecret =
-      cloudinaryConfig.apiSecret ||
-      cloudinaryConfig.encryptedSecret;
+    const apiKey = (cloudinaryConfig.apiKey || '').toString().trim();
+    const cloudName = (cloudinaryConfig.cloudName || '').toString().trim();
+    const apiSecret = (cloudinaryConfig.apiSecret || cloudinaryConfig.encryptedSecret || '')
+      .toString()
+      .trim();
+
+    if (!apiKey || !cloudName || !apiSecret) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'Cloudinary credentials are incomplete. Please reconnect your account.'
+      );
+    }
+
+    logInfo(FN, 'Cloudinary credentials loaded', {
+      uid,
+      cloudName,
+      apiKeyLast4: apiKey.slice(-4),
+      secretLength: apiSecret.length
+    });
 
     // FIX 4: Server builds folder - sanitize all inputs
     const photographerSlug = sanitizeSlug(
@@ -150,16 +172,16 @@ export const generateCloudinarySignature = functions
     logInfo(FN, 'Upload folder set', { uploadFolder });
 
     // FIX 1: SHA1 required by Cloudinary (not SHA256)
-    // FIX 5 + 14: Sign file restrictions so client cannot override
+    // FIX 5 + 14: Keep file-size validation in Angular.
+    // Cloudinary does not include max_file_size in this upload signature string.
     const timestamp = Math.round(new Date().getTime() / 1000);
     const allowedFormats = 'jpg,jpeg,png,webp,gif';
-    const maxFileSize = 20971520; // 20MB
+    const maxFileSize = 10485760; // 10MB
 
     // Parameters MUST be alphabetically sorted for Cloudinary
     const params: Record<string, string> = {
       allowed_formats: allowedFormats,
       folder: uploadFolder,
-      max_file_size: maxFileSize.toString(),
       timestamp: timestamp.toString()
     };
 
@@ -167,6 +189,13 @@ export const generateCloudinarySignature = functions
       .sort()
       .map(key => `${key}=${params[key]}`)
       .join('&');
+
+    logInfo(FN, 'Signing Cloudinary upload params', {
+      uid,
+      cloudName,
+      apiKeyLast4: apiKey.slice(-4),
+      paramsString
+    });
 
     // FIX 1: SHA1 - Cloudinary REQUIRES SHA1
     const signature = crypto
@@ -179,14 +208,13 @@ export const generateCloudinarySignature = functions
     return {
       signature,
       timestamp,
-      apiKey: cloudinaryConfig.apiKey,
-      cloudName: cloudinaryConfig.cloudName,
+      apiKey,
+      cloudName,
       folder: uploadFolder,
       allowedFormats,
       maxFileSize
     };
   });
-
 
 // -----------------------------------------------
 // DELETE CLOUDINARY ASSET
@@ -196,7 +224,7 @@ export const generateCloudinarySignature = functions
 // -----------------------------------------------
 export const deleteCloudinaryAsset = functions
   .region('asia-south1')
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: any, context: functions.https.CallableContext) => { // 🚀 Explicitly typed parameters
 
     const FN = 'deleteCloudinaryAsset';
 
@@ -316,19 +344,19 @@ export const deleteCloudinaryAsset = functions
     }
   });
 
-
 // -----------------------------------------------
 // SAVE CLOUDINARY CONFIG SECURELY
 // FIX 3: Saves to private subcollection
-// Angular CANNOT read this path
+// Angular CANNOT read this path directly
 // -----------------------------------------------
 export const saveCloudinaryConfig = functions
   .region('asia-south1')
-  .https.onCall(async (data, context) => {
+  .https.onCall(async (data: any, context: functions.https.CallableContext) => {
 
     const FN = 'saveCloudinaryConfig';
 
     if (!context.auth) {
+      logError(FN, 'Unauthenticated request');
       throw new functions.https.HttpsError(
         'unauthenticated',
         'You must be logged in.'
@@ -336,9 +364,12 @@ export const saveCloudinaryConfig = functions
     }
 
     const uid = context.auth.uid;
-    const { cloudName, apiKey, apiSecret } = data;
+    const cloudName = (data.cloudName || '').toString().trim();
+    const apiKey = (data.apiKey || '').toString().trim();
+    const apiSecret = (data.apiSecret || '').toString().trim();
 
     if (!cloudName || !apiKey || !apiSecret) {
+      logError(FN, 'Missing arguments', { uid });
       throw new functions.https.HttpsError(
         'invalid-argument',
         'cloudName, apiKey and apiSecret are required.'
@@ -347,32 +378,150 @@ export const saveCloudinaryConfig = functions
 
     logInfo(FN, 'Saving cloudinary config', { uid, cloudName });
 
-    // Save to private subcollection (not readable by Angular)
-    await db
-      .collection('photographers')
-      .doc(uid)
-      .collection('private')
-      .doc('cloudinary_config')
-      .set({
-        cloudName,
-        apiKey,
-        apiSecret,       // stored in private subcollection
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+    try {
+      // 1. Save to private subcollection (hidden from Frontend client)
+      await db
+        .collection('photographers')
+        .doc(uid)
+        .collection('private')
+        .doc('cloudinary_config')
+        .set({
+          cloudName,
+          apiKey,
+          apiSecret,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
 
-    // Save non-secret fields to public profile
-    await db
-      .collection('photographers')
-      .doc(uid)
-      .update({
-        'cloudinary.cloudName': cloudName,
-        'cloudinary.apiKey': apiKey,
-        'cloudinary.configured': true
-      });
+      // 2. 🚀 FIX: Use set with merge: true instead of update.
+      // This safely handles cases where the root photographer document doesn't exist yet!
+      await db
+        .collection('photographers')
+        .doc(uid)
+        .set({
+          ownerUid:uid,
+          cloudinary: {
+            cloudName,
+            apiKey,
+            configured: true
+          }
+        }, { merge: true });
 
-    logInfo(FN, 'Cloudinary config saved', { uid });
-    return { success: true };
+      logInfo(FN, 'Cloudinary config saved successfully', { uid });
+      return { success: true };
+
+    } catch (err: any) {
+      logError(FN, 'Save operation failed', err);
+      throw new functions.https.HttpsError(
+        'internal',
+        'Failed to save configuration.'
+      );
+    }
   });
 
+// -----------------------------------------------
+// CREATE PLATFORM USER (super-admin only)
+// Creates Firebase Auth and role data without replacing
+// the current admin browser session.
+// -----------------------------------------------
+export const createPlatformUser = functions
+  .region('asia-south1')
+  .https.onCall(async (data: any, context: functions.https.CallableContext) => {
+    const FN = 'createPlatformUser';
 
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'You must be logged in.');
+    }
 
+    const caller = await db.collection('users').doc(context.auth.uid).get();
+    if (!caller.exists || caller.data()?.['role'] !== 'super-admin') {
+      logError(FN, 'Non-admin account creation attempt', { uid: context.auth.uid });
+      throw new functions.https.HttpsError('permission-denied', 'Only admins can create users.');
+    }
+
+    const name = (data.name || '').toString().trim();
+    const email = (data.email || '').toString().trim().toLowerCase();
+    const phone = (data.phone || '').toString().trim();
+    const requestedRole = data.role === 'admin' ? 'super-admin' : data.role;
+    const allowedRoles = ['affiliate', 'photographer', 'super-admin'];
+
+    if (!name || !email || !phone || !allowedRoles.includes(requestedRole)) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Name, phone, email, and a valid role are required.'
+      );
+    }
+
+    const temporaryPassword = `Pm${crypto.randomBytes(9).toString('base64url')}9`;
+    let userRecord: admin.auth.UserRecord;
+
+    try {
+      userRecord = await admin.auth().createUser({
+        email,
+        password: temporaryPassword,
+        displayName: name
+      });
+    } catch (err: any) {
+      logError(FN, 'Auth user creation failed', err);
+      if (err?.code === 'auth/email-already-exists') {
+        throw new functions.https.HttpsError('already-exists', 'An account already exists with this email.');
+      }
+      throw new functions.https.HttpsError('internal', 'Unable to create the user account.');
+    }
+
+    const uid = userRecord.uid;
+    const batch = db.batch();
+    batch.set(db.collection('users').doc(uid), {
+      uid,
+      name,
+      email,
+      phone,
+      role: requestedRole,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdBy: context.auth.uid
+    });
+
+    if (requestedRole === 'photographer') {
+      const slugBase = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48) || 'studio';
+      const slug = `${slugBase}-${uid.slice(0, 6)}`;
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+      batch.set(db.collection('photographers').doc(uid), {
+        ownerUid: uid,
+        slug,
+        studioName: name,
+        email,
+        phone,
+        theme: {
+          primaryColor: '#c9a96e',
+          accentColor: '#e8c98b',
+          backgroundColor: '#111111',
+          textColor: '#ffffff',
+          font: 'Poppins',
+          layout: 'luxury-dark',
+          heroStyle: 'fullscreen'
+        },
+        subscriptionPlan: 'trial',
+        isActive: true,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      batch.set(db.collection('subscriptions').doc(uid), {
+        photographerId: uid,
+        plan: 'trial',
+        status: 'active',
+        startDate: admin.firestore.FieldValue.serverTimestamp(),
+        trialEndsAt: admin.firestore.Timestamp.fromDate(trialEndsAt),
+        amount: 0,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    await batch.commit();
+    logInfo(FN, 'Platform user created', { uid, role: requestedRole, createdBy: context.auth.uid });
+
+    return { uid, temporaryPassword, role: requestedRole };
+  });

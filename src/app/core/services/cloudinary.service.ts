@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpEventType, HttpRequest } from '@angular/common/http';
 import { Functions, httpsCallable } from '@angular/fire/functions';
-import { Observable, from } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
+import { Observable, from, throwError } from 'rxjs';
+import { map, filter, catchError, tap } from 'rxjs/operators';
 
 export interface UploadProgress {
   progress: number;
@@ -12,6 +12,14 @@ export interface UploadProgress {
   height?: number;
   done: boolean;
   error?: string;
+}
+
+export interface PreparedUpload {
+  file: File;
+  originalSize: number;
+  compressed: boolean;
+  width?: number;
+  height?: number;
 }
 
 @Injectable({
@@ -31,7 +39,9 @@ export class CloudinaryService {
     '.jpg', '.jpeg', '.png', '.webp', '.gif'
   ];
 
-  readonly MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
+  readonly CLOUDINARY_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+  readonly MAX_ORIGINAL_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+  readonly MAX_IMAGE_EDGE_PX = 3000;
 
   constructor(
     private http: HttpClient,
@@ -54,11 +64,12 @@ export class CloudinaryService {
       };
     }
 
-    if (file.size > this.MAX_FILE_SIZE_BYTES) {
+    if (file.size > this.MAX_ORIGINAL_FILE_SIZE_BYTES) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      const maxMB = (this.MAX_ORIGINAL_FILE_SIZE_BYTES / 1024 / 1024).toFixed(0);
       return {
         valid: false,
-        error: `File too large (${sizeMB}MB). Maximum is 20MB.`
+        error: `File too large (${sizeMB}MB). Maximum is ${maxMB}MB.`
       };
     }
 
@@ -67,6 +78,109 @@ export class CloudinaryService {
     }
 
     return { valid: true };
+  }
+
+  async prepareFileForUpload(file: File): Promise<PreparedUpload> {
+    if (file.size <= this.CLOUDINARY_MAX_FILE_SIZE_BYTES) {
+      return {
+        file,
+        originalSize: file.size,
+        compressed: false
+      };
+    }
+
+    if (file.type === 'image/gif') {
+      throw new Error('GIF is too large. Animated GIF compression is not supported yet. Please upload a GIF under 10MB.');
+    }
+
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      throw new Error('This image type cannot be compressed in the browser.');
+    }
+
+    const image = await this.loadImage(file);
+    const scale = Math.min(
+      1,
+      this.MAX_IMAGE_EDGE_PX / Math.max(image.naturalWidth, image.naturalHeight)
+    );
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not prepare image compression.');
+    }
+
+    ctx.drawImage(image, 0, 0, width, height);
+    URL.revokeObjectURL(image.src);
+
+    const qualities = [0.84, 0.78, 0.72, 0.66, 0.6];
+    let compressedFile: File | null = null;
+
+    for (const quality of qualities) {
+      const blob = await this.canvasToBlob(canvas, 'image/jpeg', quality);
+      compressedFile = new File(
+        [blob],
+        this.toJpegFileName(file.name),
+        { type: 'image/jpeg', lastModified: Date.now() }
+      );
+
+      if (compressedFile.size <= this.CLOUDINARY_MAX_FILE_SIZE_BYTES) {
+        break;
+      }
+    }
+
+    if (!compressedFile || compressedFile.size > this.CLOUDINARY_MAX_FILE_SIZE_BYTES) {
+      throw new Error('Image is still above 10MB after optimization. Please compress it manually and try again.');
+    }
+
+    console.log('[Cloudinary Upload] image optimized', {
+      originalName: file.name,
+      originalSizeMb: (file.size / 1024 / 1024).toFixed(2),
+      optimizedName: compressedFile.name,
+      optimizedSizeMb: (compressedFile.size / 1024 / 1024).toFixed(2),
+      width,
+      height
+    });
+
+    return {
+      file: compressedFile,
+      originalSize: file.size,
+      compressed: true,
+      width,
+      height
+    };
+  }
+
+  private loadImage(file: File): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => {
+        URL.revokeObjectURL(image.src);
+        reject(new Error('Could not read image for optimization.'));
+      };
+      image.src = URL.createObjectURL(file);
+    });
+  }
+
+  private canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(blob => {
+        if (!blob) {
+          reject(new Error('Could not compress image.'));
+          return;
+        }
+        resolve(blob);
+      }, type, quality);
+    });
+  }
+
+  private toJpegFileName(name: string): string {
+    return name.replace(/\.[^.]+$/, '') + '.jpg';
   }
 
   getUploadSignature(galleryId: string): Observable<any> {
@@ -94,6 +208,7 @@ export class CloudinaryService {
     } = signatureData;
 
     const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+    const maskedApiKey = `${apiKey}`.replace(/\d(?=\d{4})/g, '*');
 
     const formData = new FormData();
     formData.append('file', file);
@@ -105,15 +220,37 @@ export class CloudinaryService {
     if (allowedFormats) {
       formData.append('allowed_formats', allowedFormats);
     }
-    if (maxFileSize) {
-      formData.append('max_file_size', maxFileSize.toString());
-    }
-
     const req = new HttpRequest('POST', url, formData, {
       reportProgress: true
     });
 
+    console.groupCollapsed('[Cloudinary Upload] starting');
+    console.table({
+      cloudName,
+      apiKey: maskedApiKey,
+      folder,
+      timestamp,
+      allowedFormats,
+      maxFileSize,
+      signatureLength: signature?.length,
+      signaturePreview: signature ? `${signature.substring(0, 6)}...${signature.substring(signature.length - 4)}` : '',
+      fileName: file.name,
+      fileType: file.type,
+      fileSizeMb: (file.size / 1024 / 1024).toFixed(2)
+    });
+    console.groupEnd();
+
     return this.http.request(req).pipe(
+      tap((event: any) => {
+        if (event.type === HttpEventType.Response) {
+          console.log('[Cloudinary Upload] success', {
+            publicId: event.body?.public_id,
+            secureUrl: event.body?.secure_url,
+            width: event.body?.width,
+            height: event.body?.height
+          });
+        }
+      }),
       filter(event =>
         event.type === HttpEventType.UploadProgress ||
         event.type === HttpEventType.Response
@@ -135,6 +272,32 @@ export class CloudinaryService {
           width:     body.width,
           height:    body.height
         };
+      }),
+      catchError((err: any) => {
+        const cloudinaryMessage =
+          err?.error?.error?.message ||
+          err?.error?.message ||
+          err?.message ||
+          'Cloudinary upload failed.';
+
+        console.error('[Cloudinary Upload] failed', {
+          status: err?.status,
+          statusText: err?.statusText,
+          message: cloudinaryMessage,
+          cloudName,
+          apiKey: maskedApiKey,
+          folder,
+          timestamp,
+          allowedFormats,
+          maxFileSize,
+          signatureLength: signature?.length,
+          fileName: file.name,
+          fileType: file.type,
+          fileSizeMb: (file.size / 1024 / 1024).toFixed(2),
+          rawError: err?.error
+        });
+
+        return throwError(() => new Error(cloudinaryMessage));
       })
     );
   }

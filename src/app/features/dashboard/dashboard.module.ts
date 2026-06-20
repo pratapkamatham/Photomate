@@ -11,6 +11,10 @@ import { SettingsComponent } from './settings/settings.component';
 import { CloudinaryConnectComponent } from './cloudinary-connect/cloudinary-connect.component';
 import { BrandingComponent } from './branding/branding.component';
 import { DashboardLayoutComponent } from './layout/layout.component';
+import { LeadsComponent } from './leads/leads.component';
+import { PortfolioSectionListComponent } from './portfolio-sections/portfolio-section-list/portfolio-section-list.component';
+import { PortfolioSectionCreateComponent } from './portfolio-sections/portfolio-section-create/portfolio-section-create.component';
+import { PortfolioSectionUploadComponent } from './portfolio-sections/portfolio-section-upload/portfolio-section-upload.component';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -24,7 +28,11 @@ import { ReactiveFormsModule } from '@angular/forms';
     SettingsComponent,
     CloudinaryConnectComponent,
     BrandingComponent,
-    DashboardLayoutComponent
+    DashboardLayoutComponent,
+    LeadsComponent,
+    PortfolioSectionListComponent,
+    PortfolioSectionCreateComponent,
+    PortfolioSectionUploadComponent
   ],
   imports: [
     CommonModule,
@@ -35,3 +43,5 @@ import { ReactiveFormsModule } from '@angular/forms';
   ]
 })
 export class DashboardModule { }
+
+

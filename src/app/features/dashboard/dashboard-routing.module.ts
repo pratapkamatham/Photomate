@@ -9,6 +9,10 @@ import { CloudinaryConnectComponent } from './cloudinary-connect/cloudinary-conn
 import { GalleryCreateComponent } from './galleries/gallery-create/gallery-create.component';
 import { GalleryUploadComponent } from './galleries/gallery-upload/gallery-upload.component';
 import { SettingsComponent } from './settings/settings.component';
+import { LeadsComponent } from './leads/leads.component';
+import { PortfolioSectionListComponent } from './portfolio-sections/portfolio-section-list/portfolio-section-list.component';
+import { PortfolioSectionCreateComponent } from './portfolio-sections/portfolio-section-create/portfolio-section-create.component';
+import { PortfolioSectionUploadComponent } from './portfolio-sections/portfolio-section-upload/portfolio-section-upload.component';
 
 const routes: Routes = [
    {
@@ -19,9 +23,13 @@ const routes: Routes = [
       { path: 'galleries', component: GalleriesListComponent },
       { path: 'galleries/create', component: GalleryCreateComponent },
       { path: 'galleries/:id/upload', component: GalleryUploadComponent },
+      { path: 'portfolio-sections', component: PortfolioSectionListComponent },
+      { path: 'portfolio-sections/create', component: PortfolioSectionCreateComponent },
+      { path: 'portfolio-sections/:id/upload', component: PortfolioSectionUploadComponent },
       { path: 'settings', component: SettingsComponent },
       { path: 'cloudinary', component: CloudinaryConnectComponent },
-      { path: 'branding', component: BrandingComponent }
+      { path: 'branding', component: BrandingComponent },
+      { path: 'leads', component: LeadsComponent }
     ]
   }
 ];
@@ -31,3 +39,5 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class DashboardRoutingModule { }
+
+

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -15,49 +15,62 @@ import {
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { from, Observable, switchMap, of } from 'rxjs';
-import { Gallery } from '../models/gallery.model';
+import { Gallery, GallerySection } from '../models/gallery.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GalleryService {
 
-   constructor(
+  constructor(
     private firestore: Firestore,
     private auth: Auth
   ) {}
- 
-  // -----------------------------------------------
-  // CREATE gallery
-  // -----------------------------------------------
+
+  private readonly defaultSection: GallerySection = {
+    id: 'highlights',
+    title: 'Highlights',
+    description: 'Best moments from this event',
+    sortOrder: 0
+  };
+
   createGallery(data: Partial<Gallery>): Observable<string> {
     const uid = this.auth.currentUser?.uid;
     if (!uid) throw new Error('Not authenticated');
- 
+
+    const sections = data.sections?.length ? data.sections : [this.defaultSection];
     const ref = collection(this.firestore, 'galleries');
+
     return from(addDoc(ref, {
       ...data,
       photographerId: uid,
+      isPrivate: data.isPrivate ?? false,
+      sections,
+      defaultSectionId: data.defaultSectionId || sections[0].id,
+      shareSettings: {
+        allowDownloads: false,
+        showBranding: true,
+        leadCaptureEnabled: true,
+        ctaLabel: 'Book this photographer',
+        ...(data.shareSettings || {})
+      },
       createdAt: serverTimestamp()
     })).pipe(
       switchMap(docRef => of(docRef.id))
     );
   }
- 
-  // -----------------------------------------------
-  // GET all galleries for current photographer
-  // -----------------------------------------------
+
   getMyGalleries(): Observable<Gallery[]> {
     const uid = this.auth.currentUser?.uid;
     if (!uid) return of([]);
- 
+
     const ref = collection(this.firestore, 'galleries');
     const q = query(
       ref,
       where('photographerId', '==', uid),
       orderBy('createdAt', 'desc')
     );
- 
+
     return from(getDocs(q)).pipe(
       switchMap(snapshot => {
         const galleries = snapshot.docs.map(d => ({
@@ -68,10 +81,7 @@ export class GalleryService {
       })
     );
   }
- 
-  // -----------------------------------------------
-  // GET single gallery by ID
-  // -----------------------------------------------
+
   getGalleryById(id: string): Observable<Gallery | null> {
     const ref = doc(this.firestore, `galleries/${id}`);
     return from(getDoc(ref)).pipe(
@@ -83,10 +93,7 @@ export class GalleryService {
       })
     );
   }
- 
-  // -----------------------------------------------
-  // GET gallery by slug (public view)
-  // -----------------------------------------------
+
   getGalleryBySlug(
     photographerId: string,
     slug: string
@@ -95,7 +102,8 @@ export class GalleryService {
     const q = query(
       ref,
       where('photographerId', '==', photographerId),
-      where('slug', '==', slug)
+      where('slug', '==', slug),
+      where('isPrivate', 'in', [false, null])
     );
     return from(getDocs(q)).pipe(
       switchMap(snapshot => {
@@ -107,14 +115,13 @@ export class GalleryService {
       })
     );
   }
- // GET public galleries for a photographer
-  // Used on public portfolio page
+
   getPublicGalleries(photographerId: string): Observable<Gallery[]> {
     const ref = collection(this.firestore, 'galleries');
     const q = query(
       ref,
       where('photographerId', '==', photographerId),
-      where('isPrivate', '==', false),
+      where('isPrivate', 'in', [false, null]),
       orderBy('createdAt', 'desc')
     );
     return from(getDocs(q)).pipe(
@@ -127,19 +134,16 @@ export class GalleryService {
       })
     );
   }
-  // -----------------------------------------------
-  // UPDATE gallery
-  // -----------------------------------------------
+
   updateGallery(id: string, data: Partial<Gallery>): Observable<void> {
     const ref = doc(this.firestore, `galleries/${id}`);
     return from(updateDoc(ref, { ...data }));
   }
- 
-  // -----------------------------------------------
-  // DELETE gallery
-  // -----------------------------------------------
+
   deleteGallery(id: string): Observable<void> {
     const ref = doc(this.firestore, `galleries/${id}`);
     return from(deleteDoc(ref));
   }
 }
+
+

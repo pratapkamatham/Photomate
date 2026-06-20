@@ -1,180 +1,215 @@
-<div class="space-y-6">
+﻿<div class="space-y-8">
 
-  <div class="flex items-center gap-4">
-    <button (click)="goToGalleries()"
-            class="text-gray-400 hover:text-white transition-colors">
-      ← Back to Galleries
-    </button>
-    <div>
-      <h2 class="text-2xl font-semibold text-white">
-        {{ gallery?.title || 'Upload Photos' }}
-      </h2>
-      <p class="text-gray-500 text-xs mt-0.5">
-        /{{ gallery?.slug }}
-      </p>
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <button (click)="goToGalleries()" class="text-gray-400 hover:text-white transition-colors">
+        &larr; Back to Galleries
+      </button>
+      <div>
+        <h2 class="text-2xl font-semibold text-white">
+          {{ gallery?.title || 'Upload Photos' }}
+        </h2>
+        <p class="text-gray-500 text-xs mt-0.5">
+          /{{ gallery?.slug }}
+        </p>
+      </div>
+    </div>
+
+    <div *ngIf="publicGalleryUrl()" class="flex flex-wrap items-center gap-2">
+      <button type="button" (click)="openPublicGallery()" class="text-sm border border-white/15 text-gray-300 px-4 py-2 rounded-sm hover:bg-white/10">
+        View Public Album
+      </button>
+      <button type="button" (click)="copyPublicGalleryUrl()" class="text-sm bg-[#c9a96e] text-black font-semibold px-4 py-2 rounded-sm hover:bg-[#b8935a]">
+        Copy Share Link
+      </button>
     </div>
   </div>
 
+  <p *ngIf="copyMessage" class="text-green-400 text-sm">{{ copyMessage }}</p>
+
   <app-loader *ngIf="isLoadingGallery"></app-loader>
 
-  <div
-    *ngIf="!isLoadingGallery && !cloudinaryConfigured"
-    class="bg-yellow-900/20 border border-yellow-500/30 rounded-sm p-6">
-    <p class="text-yellow-400 font-medium mb-2">
-      ⚠ Cloudinary Not Connected
-    </p>
-    <p class="text-gray-400 text-sm mb-4">
-      You need to connect your Cloudinary account before uploading photos.
-    </p>
-    <a routerLink="/dashboard/cloudinary"
-       class="inline-block bg-[#c9a96e] text-black font-semibold
-              px-5 py-2 rounded-sm hover:bg-[#b8935a] transition-colors
-              text-sm no-underline">
+  <div *ngIf="!isLoadingGallery && !cloudinaryConfigured" class="bg-yellow-900/20 border border-yellow-500/30 rounded-sm p-6">
+    <p class="text-yellow-400 font-medium mb-2">Cloudinary Not Connected</p>
+    <p class="text-gray-400 text-sm mb-4">You need to connect your Cloudinary account before uploading photos.</p>
+    <a routerLink="/dashboard/cloudinary" class="inline-block bg-[#c9a96e] text-black font-semibold px-5 py-2 rounded-sm hover:bg-[#b8935a] transition-colors text-sm no-underline">
       Connect Cloudinary
     </a>
   </div>
 
-  <div *ngIf="!isLoadingGallery && cloudinaryConfigured">
+  <div *ngIf="!isLoadingGallery && cloudinaryConfigured" class="space-y-8">
 
-    <div
-      *ngIf="uploadItems.length === 0"
-      class="border-2 border-dashed rounded-sm p-16 text-center transition-colors cursor-pointer"
-      [class.border-[#c9a96e]]="isDragOver"
-      [class.border-[#2a2a2a]]="!isDragOver"
-      [ngClass]="{'bg-[#c9a96e] bg-opacity-5': isDragOver}"
-      (dragover)="onDragOver($event)"
-      (dragleave)="onDragLeave()"
-      (drop)="onDrop($event)"
-      (click)="fileInput.click()">
-
-      <p class="text-4xl mb-4">☁</p>
-      <p class="text-white font-medium mb-2">
-        Drop photos here or click to browse
-      </p>
-      <p class="text-gray-500 text-sm">
-        Supports JPG, PNG, WebP. Multiple files allowed.
-      </p>
-
-      <input
-        #fileInput
-        type="file"
-        multiple
-        accept="image/*"
-        class="hidden"
-        (change)="onFilesSelected($event)"
-      />
-    </div>
-
-    <div *ngIf="uploadItems.length > 0" class="space-y-4">
-
-      <div class="flex items-center justify-between">
-        <div class="flex gap-4 text-sm">
-          <span class="text-gray-400">
-            {{ uploadItems.length }} photos
-          </span>
-          <span class="text-green-400" *ngIf="doneCount > 0">
-            ✓ {{ doneCount }} uploaded
-          </span>
-          <span class="text-[#c9a96e]" *ngIf="uploadingCount > 0">
-            ↑ {{ uploadingCount }} uploading
-          </span>
-        </div>
-        <div class="flex gap-3">
-          <button
-            (click)="fileInput2.click()"
-            class="text-sm border border-[#2a2a2a] text-gray-400 px-4 py-2
-                   rounded-sm hover:border-gray-500 transition-colors">
-            Add More
-          </button>
-          <button
-            (click)="uploadAll()"
-            [disabled]="pendingCount === 0"
-            class="text-sm bg-[#c9a96e] text-black font-semibold px-5 py-2
-                   rounded-sm hover:bg-[#b8935a] transition-colors
-                   disabled:opacity-40 disabled:cursor-not-allowed">
-            Upload {{ pendingCount > 0 ? pendingCount + ' Photos' : 'All' }}
-          </button>
-        </div>
-        <input
-          #fileInput2
-          type="file"
-          multiple
-          accept="image/*"
-          class="hidden"
-          (change)="onFilesSelected($event)"
-        />
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        <div
-          *ngFor="let item of uploadItems; let i = index"
-          class="relative group rounded-sm overflow-hidden bg-[#1a1a1a]
-                 border border-[#2a2a2a] aspect-square">
-
-          <img
-            [src]="item.preview"
-            [alt]="item.file.name"
-            class="w-full h-full object-cover"
-          />
-
-          <div class="absolute inset-0 bg-black/60 opacity-0
-                      group-hover:opacity-100 transition-opacity
-                      flex items-center justify-center">
-            <button
-              *ngIf="item.status === 'pending'"
-              (click)="removeItem(i)"
-              class="text-white text-xs bg-red-500/80 px-2 py-1 rounded">
-              Remove
-            </button>
-          </div>
-
-          <div
-            *ngIf="item.status === 'uploading'"
-            class="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
-            <div
-              class="h-full bg-[#c9a96e] transition-all duration-300"
-              [style.width.%]="item.progress">
-            </div>
-          </div>
-
-          <div class="absolute top-2 right-2">
-            <span
-              *ngIf="item.status === 'done'"
-              class="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded">
-              ✓
-            </span>
-            <span
-              *ngIf="item.status === 'error'"
-              class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">
-              ✗
-            </span>
-            <span
-              *ngIf="item.status === 'uploading'"
-              class="bg-[#c9a96e] text-black text-xs px-1.5 py-0.5 rounded">
-              {{ item.progress }}%
-            </span>
-          </div>
-
+    <section class="space-y-4">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h3 class="text-white font-semibold">Upload More Photos</h3>
+          <p class="text-gray-500 text-sm">
+            Large batches are uploaded in the background. Completed previews are removed to keep the page fast.
+          </p>
         </div>
       </div>
 
       <div
-        *ngIf="doneCount === uploadItems.length && uploadItems.length > 0"
-        class="flex items-center justify-between p-4 bg-green-900/20
-               border border-green-500/30 rounded-sm">
-        <p class="text-green-400 text-sm font-medium">
-          ✓ All {{ doneCount }} photos uploaded successfully!
+        *ngIf="uploadItems.length === 0 && !isUploading"
+        class="border-2 border-dashed rounded-sm p-12 text-center transition-colors cursor-pointer"
+        [class.border-[#c9a96e]]="isDragOver"
+        [class.border-[#2a2a2a]]="!isDragOver"
+        [ngClass]="{'bg-[#c9a96e] bg-opacity-5': isDragOver}"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+        (click)="fileInput.click()">
+
+        <p class="text-4xl mb-4">Upload</p>
+        <p class="text-white font-medium mb-2">Drop photos here or click to browse</p>
+        <p class="text-gray-500 text-sm">Supports JPG, PNG, WebP. Multiple files allowed.</p>
+
+        <input #fileInput type="file" multiple accept="image/*" class="hidden" (change)="onFilesSelected($event)" />
+      </div>
+
+      <div *ngIf="uploadItems.length > 0 || isUploading || doneCount > 0" class="space-y-4">
+
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+          <div class="flex flex-wrap gap-4 text-sm">
+            <span class="text-gray-400">{{ activeQueueCount }} in queue</span>
+            <span class="text-gray-400" *ngIf="totalQueuedCount > 0">{{ totalQueuedCount }} selected this batch</span>
+            <span class="text-green-400" *ngIf="doneCount > 0">Uploaded {{ doneCount }}</span>
+            <span class="text-[#c9a96e]" *ngIf="uploadingCount > 0">Processing {{ uploadingCount }}</span>
+            <span class="text-red-400" *ngIf="failedCount > 0">Failed {{ failedCount }}</span>
+          </div>
+          <div class="flex gap-3">
+            <button (click)="fileInput2.click()" [disabled]="isUploading" class="text-sm border border-[#2a2a2a] text-gray-400 px-4 py-2 rounded-sm hover:border-gray-500 transition-colors disabled:opacity-40">
+              Add More
+            </button>
+            <button
+              (click)="uploadAll()"
+              [disabled]="pendingCount === 0 || isUploading"
+              class="text-sm bg-[#c9a96e] text-black font-semibold px-5 py-2 rounded-sm hover:bg-[#b8935a] transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              {{ isUploading ? 'Uploading...' : (pendingCount > 0 ? 'Upload ' + pendingCount + ' Photos' : 'No Pending Photos') }}
+            </button>
+          </div>
+          <input #fileInput2 type="file" multiple accept="image/*" class="hidden" (change)="onFilesSelected($event)" />
+        </div>
+
+        <div *ngIf="uploadError" class="p-3 border border-red-500/30 bg-red-900/20 text-red-300 text-sm rounded-sm">
+          {{ uploadError }}
+        </div>
+
+        <div *ngIf="isUploading" class="p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm">
+          <div class="flex items-center justify-between text-sm mb-2">
+            <span class="text-gray-300">Uploading batch</span>
+            <span class="text-gray-500">{{ doneCount }} done / {{ pendingCount }} waiting</span>
+          </div>
+          <div class="h-2 bg-black/40 rounded-sm overflow-hidden">
+            <div class="h-full bg-[#c9a96e] transition-all" [style.width.%]="totalQueuedCount ? (doneCount / totalQueuedCount) * 100 : 0"></div>
+          </div>
+        </div>
+
+        <p *ngIf="hiddenQueueCount > 0" class="text-xs text-gray-500">
+          Showing {{ visibleUploadItems.length }} active previews. {{ hiddenQueueCount }} more files are queued in the background.
         </p>
-        <button
-          (click)="goToGalleries()"
-          class="text-sm bg-[#c9a96e] text-black font-semibold px-5 py-2
-                 rounded-sm hover:bg-[#b8935a] transition-colors">
-          Back to Galleries
+
+        <div *ngIf="visibleUploadItems.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div
+            *ngFor="let item of visibleUploadItems; let i = index; trackBy: trackByFileName"
+            class="relative group rounded-sm overflow-hidden bg-[#1a1a1a] border border-[#2a2a2a] aspect-square">
+
+            <img [src]="item.preview" [alt]="item.file.name" class="w-full h-full object-cover" />
+
+            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <button *ngIf="item.status === 'pending'" (click)="removeItem(i)" class="text-white text-xs bg-red-500/80 px-2 py-1 rounded">
+                Remove
+              </button>
+            </div>
+
+            <div *ngIf="item.status === 'uploading' || item.status === 'optimizing'" class="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
+              <div class="h-full bg-[#c9a96e] transition-all duration-300" [style.width.%]="item.status === 'optimizing' ? 20 : item.progress"></div>
+            </div>
+
+            <div *ngIf="item.status === 'error' && item.error" class="absolute left-2 right-2 bottom-2 text-[11px] leading-snug bg-red-950/90 text-red-100 p-2 rounded-sm">
+              {{ item.error }}
+            </div>
+
+            <div class="absolute top-2 right-2">
+              <span *ngIf="item.status === 'done'" class="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded">Done</span>
+              <span *ngIf="item.status === 'error'" class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded">Error</span>
+              <span *ngIf="item.status === 'optimizing'" class="bg-[#c9a96e] text-black text-xs px-1.5 py-0.5 rounded">Optimizing</span>
+              <span *ngIf="item.status === 'uploading'" class="bg-[#c9a96e] text-black text-xs px-1.5 py-0.5 rounded">{{ item.progress }}%</span>
+              <span *ngIf="item.status === 'pending'" class="bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">Queued</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="doneCount > 0 && !isUploading" class="flex items-center justify-between p-4 bg-green-900/20 border border-green-500/30 rounded-sm">
+          <p class="text-green-400 text-sm font-medium">
+            {{ doneCount }} photo{{ doneCount === 1 ? '' : 's' }} uploaded. They are visible below.
+          </p>
+          <button (click)="clearCompletedQueue()" class="text-sm border border-green-500/30 text-green-300 px-4 py-2 rounded-sm hover:bg-green-500/10">
+            Clear Completed
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+        <div>
+          <h3 class="text-white font-semibold">Uploaded Photos</h3>
+          <p class="text-gray-500 text-sm">
+            {{ uploadedAssets.length }} saved in this album. Showing {{ visibleUploadedAssets.length }}.
+            Hero carousel: {{ selectedHeroImages.length }}/5 selected.
+          </p>
+        </div>
+        <button type="button" (click)="loadUploadedAssets()" class="text-sm border border-[#2a2a2a] text-gray-400 px-4 py-2 rounded-sm hover:border-gray-500">
+          Refresh
         </button>
       </div>
 
-    </div>
+      <app-loader *ngIf="isLoadingAssets"></app-loader>
+
+      <div *ngIf="!isLoadingAssets && uploadedAssets.length === 0" class="border border-[#2a2a2a] bg-[#1a1a1a] rounded-sm p-8 text-center">
+        <p class="text-gray-400">No uploaded photos saved yet.</p>
+        <p class="text-gray-600 text-sm mt-1">Upload photos above, then this album grid will appear here.</p>
+      </div>
+
+      <div *ngIf="!isLoadingAssets && uploadedAssets.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3">
+        <a
+          *ngFor="let asset of visibleUploadedAssets; trackBy: trackByAssetId"
+          [href]="asset.secureUrl"
+          target="_blank"
+          rel="noopener"
+          class="relative group aspect-square overflow-hidden rounded-sm border border-[#2a2a2a] bg-[#111111]">
+          <img [src]="buildThumb(asset)" [alt]="asset.sectionTitle || 'Uploaded photo'" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+
+          <span *ngIf="isHeroAsset(asset)" class="absolute top-2 left-2 text-[11px] bg-[#c9a96e] text-black font-semibold px-2 py-1 rounded-sm">
+            Hero
+          </span>
+
+          <div class="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button type="button" (click)="setHeroImage(asset, $event)" class="text-[11px] bg-black/75 text-white px-2 py-1 rounded-sm">
+              Primary
+            </button>
+            <button *ngIf="canAddHeroImage(asset)" type="button" (click)="addHeroImage(asset, $event)" class="text-[11px] bg-[#c9a96e] text-black font-semibold px-2 py-1 rounded-sm">
+              Add Hero
+            </button>
+            <button *ngIf="selectedHeroImages.includes(asset.secureUrl)" type="button" (click)="removeHeroImage(asset, $event)" class="text-[11px] bg-red-500/85 text-white px-2 py-1 rounded-sm">
+              Remove
+            </button>
+          </div>
+
+          <span class="absolute left-2 bottom-2 text-[11px] bg-black/70 text-white px-2 py-1 rounded-sm">
+            {{ asset.sectionTitle || 'Highlights' }}
+          </span>
+        </a>
+      </div>
+
+      <div *ngIf="hasMoreUploadedAssets" class="text-center">
+        <button type="button" (click)="showMoreUploadedAssets()" class="text-sm border border-[#2a2a2a] text-gray-300 px-5 py-2 rounded-sm hover:border-[#c9a96e]/50">
+          Show More Photos
+        </button>
+      </div>
+    </section>
 
   </div>
-
 </div>
+

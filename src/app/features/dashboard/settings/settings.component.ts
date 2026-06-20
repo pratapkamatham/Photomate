@@ -1,27 +1,29 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PhotographerService } from '../../../core/services/photographer.service';
+import { AuthService } from '../../../core/services/auth.service'; // 🚀 Import your AuthService
 import { Theme } from '../../../core/models/photographer.model';
- 
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.css']
 })
 export class SettingsComponent implements OnInit {
- 
+
   settingsForm!: FormGroup;
   isLoading = false;
   isSaving = false;
   successMessage = '';
   errorMessage = '';
   profileExists = false;
- 
+
   constructor(
     private fb: FormBuilder,
-    private photographerService: PhotographerService
+    private photographerService: PhotographerService,
+    private authService: AuthService // 🚀 Inject your AuthService here
   ) {}
- 
+
   ngOnInit(): void {
     this.settingsForm = this.fb.group({
       studioName: ['', [Validators.required, Validators.minLength(2)]],
@@ -31,7 +33,7 @@ export class SettingsComponent implements OnInit {
       phone:      [''],
       email:      ['', [Validators.email]]
     });
- 
+
     // Auto generate slug from studio name
     this.settingsForm.get('studioName')?.valueChanges
       .subscribe(value => {
@@ -47,14 +49,14 @@ export class SettingsComponent implements OnInit {
           );
         }
       });
- 
+
     this.loadProfile();
   }
- 
+
   get studioName() { return this.settingsForm.get('studioName'); }
   get slug()       { return this.settingsForm.get('slug'); }
   get email()      { return this.settingsForm.get('email'); }
- 
+
   loadProfile(): void {
     this.isLoading = true;
     this.photographerService.getMyProfile().subscribe({
@@ -74,18 +76,17 @@ export class SettingsComponent implements OnInit {
       error: () => { this.isLoading = false; }
     });
   }
- 
+
   onSubmit(): void {
     if (this.settingsForm.invalid) {
       this.settingsForm.markAllAsTouched();
       return;
     }
- 
+
     this.isSaving = true;
     this.successMessage = '';
     this.errorMessage = '';
- 
-    // FIX: Complete Theme object with ALL required fields
+
     const defaultTheme: Theme = {
       primaryColor:    '#111111',
       accentColor:     '#c9a96e',
@@ -95,8 +96,20 @@ export class SettingsComponent implements OnInit {
       layout:          'luxury-dark',
       heroStyle:       'centered'
     };
- 
+
+    // 🚀 Get the active user's UID to pass security rule evaluations
+ // 🚀 New code: Get the user object first, then extract the uid safely
+const currentUser = this.authService.getCurrentUser();
+const currentUid = currentUser ? currentUser.uid : null;
+
+if (!currentUid) {
+  this.errorMessage = 'User session not found. Please log in again.';
+  this.isSaving = false;
+  return;
+}
+
     const data = {
+      ownerUid: currentUid, // 🚀 CRITICAL ADDITION: Satisfies your Firestore Security Rules!
       studioName: this.settingsForm.value.studioName,
       slug:       this.settingsForm.value.slug,
       bio:        this.settingsForm.value.bio,
@@ -104,22 +117,23 @@ export class SettingsComponent implements OnInit {
       email:      this.settingsForm.value.email,
       theme:      defaultTheme
     };
- 
+
     const operation$ = this.profileExists
       ? this.photographerService.updateProfile(data)
       : this.photographerService.createProfile(data);
- 
+
     operation$.subscribe({
       next: () => {
         this.isSaving = false;
         this.profileExists = true;
         this.successMessage = 'Settings saved successfully!';
       },
-      error: () => {
+      error: (err) => {
+        console.error('Firestore rule execution rejected payload:', err); // Log for verification
         this.isSaving = false;
         this.errorMessage = 'Failed to save. Please try again.';
       }
     });
   }
- 
+
 }

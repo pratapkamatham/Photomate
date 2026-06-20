@@ -1,1 +1,241 @@
-<p>branding works!</p>
+<div class="space-y-6 max-w-3xl">
+
+  <div>
+    <h2 class="text-2xl font-semibold text-white">Branding</h2>
+    <p class="text-gray-400 text-sm mt-1">
+      Customize how your public portfolio looks to clients.
+    </p>
+  </div>
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div *ngIf="!isLoading">
+
+    <!-- Preset Themes -->
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm
+                p-5 mb-6">
+      <h3 class="text-white font-medium mb-4">Quick Presets</h3>
+      <div class="grid grid-cols-3 gap-3">
+        <div
+          *ngFor="let preset of themeService.presets"
+          (click)="applyPreset(preset.value)"
+          class="cursor-pointer rounded-sm p-3 border transition-colors"
+          [class.border-[#c9a96e]]="selectedPreset === preset.value"
+          [class.border-[#2a2a2a]]="selectedPreset !== preset.value">
+
+          <!-- Color Preview -->
+          <div class="flex gap-1 mb-2">
+            <div class="w-5 h-5 rounded-sm border border-white/10"
+                 [style.background]="preset.theme.backgroundColor">
+            </div>
+            <div class="w-5 h-5 rounded-sm border border-white/10"
+                 [style.background]="preset.theme.accentColor">
+            </div>
+            <div class="w-5 h-5 rounded-sm border border-white/10"
+                 [style.background]="preset.theme.textColor">
+            </div>
+          </div>
+
+          <p class="text-white text-xs font-medium">
+            {{ preset.name }}
+          </p>
+          <p *ngIf="selectedPreset === preset.value"
+             class="text-[#c9a96e] text-xs mt-0.5">
+            Selected ✓
+          </p>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Theme Form -->
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+
+      <h3 class="text-white font-medium mb-4">Customize</h3>
+
+      <!-- Success -->
+      <div *ngIf="successMessage"
+           class="mb-4 px-4 py-3 bg-green-900/30 border
+                  border-green-500/30 rounded-sm text-green-400 text-sm">
+        {{ successMessage }}
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="errorMessage"
+           class="mb-4 px-4 py-3 bg-red-900/30 border
+                  border-red-500/30 rounded-sm text-red-400 text-sm">
+        {{ errorMessage }}
+      </div>
+
+      <form [formGroup]="brandingForm" (ngSubmit)="onSubmit()">
+
+        <!-- Colors Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-2">
+              Background
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="color"
+                     formControlName="backgroundColor"
+                     class="w-10 h-10 rounded-sm cursor-pointer
+                            border border-[#2a2a2a] bg-transparent"/>
+              <input type="text"
+                     formControlName="backgroundColor"
+                     class="flex-1 bg-[#111111] border border-[#2a2a2a]
+                            text-white rounded-sm px-2 py-1 text-xs
+                            focus:outline-none focus:border-[#c9a96e]"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-2">
+              Accent Color
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="color"
+                     formControlName="accentColor"
+                     class="w-10 h-10 rounded-sm cursor-pointer
+                            border border-[#2a2a2a] bg-transparent"/>
+              <input type="text"
+                     formControlName="accentColor"
+                     class="flex-1 bg-[#111111] border border-[#2a2a2a]
+                            text-white rounded-sm px-2 py-1 text-xs
+                            focus:outline-none focus:border-[#c9a96e]"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-2">
+              Text Color
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="color"
+                     formControlName="textColor"
+                     class="w-10 h-10 rounded-sm cursor-pointer
+                            border border-[#2a2a2a] bg-transparent"/>
+              <input type="text"
+                     formControlName="textColor"
+                     class="flex-1 bg-[#111111] border border-[#2a2a2a]
+                            text-white rounded-sm px-2 py-1 text-xs
+                            focus:outline-none focus:border-[#c9a96e]"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-2">
+              Primary Color
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="color"
+                     formControlName="primaryColor"
+                     class="w-10 h-10 rounded-sm cursor-pointer
+                            border border-[#2a2a2a] bg-transparent"/>
+              <input type="text"
+                     formControlName="primaryColor"
+                     class="flex-1 bg-[#111111] border border-[#2a2a2a]
+                            text-white rounded-sm px-2 py-1 text-xs
+                            focus:outline-none focus:border-[#c9a96e]"/>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Font -->
+        <div class="mb-5">
+          <label class="block text-sm text-gray-400 mb-2">Font</label>
+          <select formControlName="font"
+                  class="w-full bg-[#111111] border border-[#2a2a2a]
+                         text-white rounded-sm px-4 py-3 text-sm
+                         focus:outline-none focus:border-[#c9a96e]">
+            <option *ngFor="let font of fonts" [value]="font">
+              {{ font }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Hero Style -->
+        <div class="mb-6">
+          <label class="block text-sm text-gray-400 mb-2">
+            Hero Layout
+          </label>
+          <div class="grid grid-cols-3 gap-3">
+            <div
+              *ngFor="let style of heroStyles"
+              (click)="brandingForm.patchValue({ heroStyle: style.value })"
+              class="cursor-pointer border rounded-sm p-3 text-center
+                     transition-colors"
+              [class.border-[#c9a96e]]="brandingForm.get('heroStyle')?.value === style.value"
+              [class.text-[#c9a96e]]="brandingForm.get('heroStyle')?.value === style.value"
+              [class.border-[#2a2a2a]]="brandingForm.get('heroStyle')?.value !== style.value"
+              [class.text-gray-400]="brandingForm.get('heroStyle')?.value !== style.value">
+              <p class="text-sm font-medium">{{ style.label }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview Button -->
+        <div class="flex gap-3">
+          <button
+            type="button"
+            (click)="previewInBrowser()"
+            class="flex-1 border border-[#c9a96e] text-[#c9a96e]
+                   font-medium py-3 rounded-sm hover:bg-[#c9a96e]/10
+                   transition-colors text-sm">
+            Preview Theme
+          </button>
+          <button
+            type="submit"
+            [disabled]="isSaving"
+            class="flex-1 bg-[#c9a96e] text-black font-semibold
+                   py-3 rounded-sm hover:bg-[#b8935a] transition-colors
+                   disabled:opacity-50 disabled:cursor-not-allowed
+                   flex items-center justify-center gap-2 text-sm">
+            <span *ngIf="isSaving"
+                  class="w-4 h-4 border-2 border-black
+                         border-t-transparent rounded-full animate-spin">
+            </span>
+            {{ isSaving ? 'Saving...' : 'Save Branding' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Live Preview Card -->
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+      <h3 class="text-white font-medium mb-4">Preview</h3>
+
+      <div
+        class="rounded-sm overflow-hidden border border-[#2a2a2a]"
+        [style.background]="brandingForm.get('backgroundColor')?.value"
+        [style.color]="brandingForm.get('textColor')?.value"
+        [style.fontFamily]="brandingForm.get('font')?.value">
+
+        <!-- Mock hero -->
+        <div class="p-8 text-center border-b"
+             [style.borderColor]="brandingForm.get('accentColor')?.value + '30'">
+          <h2 class="text-2xl font-bold mb-2">Your Studio Name</h2>
+          <div class="w-12 h-0.5 mx-auto mb-3"
+               [style.background]="brandingForm.get('accentColor')?.value">
+          </div>
+          <p class="text-sm opacity-60">
+            Your studio bio appears here
+          </p>
+        </div>
+
+        <!-- Mock gallery grid -->
+        <div class="p-4 grid grid-cols-3 gap-2">
+          <div *ngFor="let i of [1,2,3]"
+               class="aspect-square rounded-sm opacity-30"
+               [style.background]="brandingForm.get('accentColor')?.value">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+

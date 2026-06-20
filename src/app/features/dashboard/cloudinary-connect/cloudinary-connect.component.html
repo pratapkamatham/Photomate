@@ -1,10 +1,10 @@
-<div class="space-y-6 max-w-2xl">
+﻿<div class="space-y-6 max-w-2xl">
  
   <div>
     <h2 class="text-2xl font-semibold text-white">Connect Cloudinary</h2>
     <p class="text-gray-400 text-sm mt-1">
       Link your Cloudinary account to enable photo uploads.
-      Your media is stored in your own account — PhotoMate
+      Your media is stored in your own account â€” PhotoMate
       never stores your images.
     </p>
   </div>
@@ -14,7 +14,7 @@
     *ngIf="isConnected"
     class="flex items-center gap-3 px-4 py-3 bg-green-900/20
            border border-green-500/30 rounded-sm">
-    <span class="text-green-400 text-lg">✓</span>
+    <span class="text-green-400 text-lg">âœ“</span>
     <div>
       <p class="text-green-400 text-sm font-medium">Cloudinary Connected</p>
       <p class="text-gray-400 text-xs">Cloud: {{ existingCloudName }}</p>
@@ -36,7 +36,7 @@
       </p>
       <ol class="text-xs text-gray-500 space-y-1 list-decimal list-inside">
         <li>Login to cloudinary.com</li>
-        <li>Go to Dashboard → API Keys</li>
+        <li>Go to Dashboard â†’ API Keys</li>
         <li>Copy Cloud Name, API Key, and API Secret</li>
       </ol>
     </div>
@@ -55,6 +55,13 @@
       class="mb-4 px-4 py-3 bg-red-900/30 border border-red-500/30
              rounded-sm text-red-400 text-sm">
       {{ errorMessage }}
+    </div>
+
+    <div
+      *ngIf="saveDebugMessage"
+      class="mb-4 px-4 py-3 bg-[#111111] border border-[#2a2a2a]
+             rounded-sm text-gray-400 text-xs">
+      {{ saveDebugMessage }}
     </div>
  
     <form [formGroup]="cloudinaryForm" (ngSubmit)="onSubmit()">
@@ -107,7 +114,9 @@
         <input
           type="password"
           formControlName="apiSecret"
-          placeholder="••••••••••••••••••••"
+          name="cloudinaryApiSecret"
+          autocomplete="new-password"
+          placeholder="Enter API secret to connect or update"
           class="w-full bg-[#111111] border border-[#2a2a2a] text-white
                  placeholder-gray-600 rounded-sm px-4 py-3 text-sm
                  focus:outline-none focus:border-[#c9a96e] transition-colors"

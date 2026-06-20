@@ -1,0 +1,45 @@
+<div *ngIf="isLoading" class="min-h-screen bg-[#111111] flex items-center justify-center">
+  <p class="text-white">Loading...</p>
+</div>
+
+<div *ngIf="notFound && !isLoading" class="min-h-screen bg-[#111111] flex flex-col items-center justify-center text-center px-4">
+  <p class="text-5xl mb-6 text-white">PM</p>
+  <h2 class="text-2xl font-semibold text-white mb-2">Portfolio Section Not Found</h2>
+  <button type="button" (click)="backToPortfolio()" class="text-[#c9a96e] mt-4">Back to Portfolio</button>
+</div>
+
+<div *ngIf="!isLoading && !notFound && photographer && section as activeSection" class="min-h-screen bg-[#111111] text-white">
+  <header class="px-6 md:px-12 py-6 border-b border-white/10 flex items-center justify-between">
+    <button type="button" (click)="backToPortfolio()" class="text-gray-300 hover:text-white">Back to Portfolio</button>
+    <span class="text-gray-500 text-sm">{{ assets.length }} photos</span>
+  </header>
+
+  <section class="relative min-h-[48vh] flex items-end overflow-hidden border-b border-white/10">
+    <img
+      *ngIf="activeSection.heroImage || activeSection.coverImage"
+      [src]="activeSection.heroImage || activeSection.coverImage"
+      [alt]="activeSection.title"
+      class="absolute inset-0 w-full h-full object-cover opacity-55"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/30"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-6 py-14 w-full">
+      <p class="text-xs uppercase tracking-[0.35em] text-[#c9a96e] mb-4">{{ photographer.studioName }}</p>
+      <h1 class="text-4xl md:text-7xl font-bold">{{ activeSection.title }}</h1>
+      <p *ngIf="activeSection.description" class="mt-4 max-w-2xl text-gray-300">{{ activeSection.description }}</p>
+    </div>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-6 py-12">
+    <div *ngIf="assets.length === 0" class="border border-white/10 p-12 text-center text-gray-400">
+      No images published in this section yet.
+    </div>
+    <div *ngIf="assets.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <img *ngFor="let asset of assets" [src]="buildImage(asset)" [alt]="activeSection.title" class="w-full aspect-[4/3] object-cover" loading="lazy" />
+    </div>
+  </section>
+
+  <footer class="app-footer">
+    <span>Powered by King Dany Pratap Web Solutions</span>
+    <span>Contact: 8019585256</span>
+  </footer>
+</div>

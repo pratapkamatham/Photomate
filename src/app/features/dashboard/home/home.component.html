@@ -1,21 +1,32 @@
 <div class="space-y-8">
- 
-  <!-- Welcome -->
+
   <div>
     <h2 class="text-2xl font-semibold text-white">
-      Welcome back 👋
+      Welcome back
     </h2>
     <p class="text-gray-400 text-sm mt-1">
       {{ photographerEmail }}
     </p>
+    <button
+      type="button"
+      (click)="loadDashboard()"
+      class="mt-3 text-xs border border-[#2a2a2a] text-gray-400 px-3 py-1 rounded-sm hover:border-[#c9a96e] hover:text-[#c9a96e] transition-colors">
+      Refresh stats
+    </button>
   </div>
- 
-  <!-- Stats Cards -->
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div
+    *ngIf="errorMessage"
+    class="px-4 py-3 bg-red-900/30 border border-red-500/30 rounded-sm text-red-400 text-sm">
+    {{ errorMessage }}
+  </div>
+
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div
       *ngFor="let stat of stats"
-      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5
-             hover:border-[#c9a96e]/30 transition-colors duration-200">
+      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5 hover:border-[#c9a96e]/30 transition-colors duration-200">
       <div class="flex items-center justify-between mb-3">
         <span class="text-2xl text-[#c9a96e]">{{ stat.icon }}</span>
       </div>
@@ -23,85 +34,110 @@
       <p class="text-xs text-gray-500 mt-1">{{ stat.label }}</p>
     </div>
   </div>
- 
-  <!-- Quick Actions -->
+
   <div>
     <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
       Quick Actions
     </h3>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
- 
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
       <a routerLink="/dashboard/galleries/create"
-         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a]
-                rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors
-                cursor-pointer no-underline group">
+         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors cursor-pointer no-underline group">
         <span class="text-2xl text-[#c9a96e]">+</span>
         <div>
-          <p class="text-white text-sm font-medium
-                    group-hover:text-[#c9a96e] transition-colors">
-            New Gallery
-          </p>
-          <p class="text-gray-500 text-xs">Create a new event album</p>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">New Gallery</p>
+          <p class="text-gray-500 text-xs">Create a client event album</p>
         </div>
       </a>
- 
+
       <a routerLink="/dashboard/cloudinary"
-         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a]
-                rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors
-                cursor-pointer no-underline group">
-        <span class="text-2xl text-[#c9a96e]">☁</span>
+         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors cursor-pointer no-underline group">
+        <span class="text-2xl text-[#c9a96e]">C</span>
         <div>
-          <p class="text-white text-sm font-medium
-                    group-hover:text-[#c9a96e] transition-colors">
-            Connect Cloudinary
-          </p>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">Connect Cloudinary</p>
           <p class="text-gray-500 text-xs">Link your media account</p>
         </div>
       </a>
- 
+
       <a routerLink="/dashboard/branding"
-         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a]
-                rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors
-                cursor-pointer no-underline group">
-        <span class="text-2xl text-[#c9a96e]">◈</span>
+         class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors cursor-pointer no-underline group">
+        <span class="text-2xl text-[#c9a96e]">B</span>
         <div>
-          <p class="text-white text-sm font-medium
-                    group-hover:text-[#c9a96e] transition-colors">
-            Setup Branding
-          </p>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">Setup Branding</p>
           <p class="text-gray-500 text-xs">Customize your portfolio</p>
         </div>
       </a>
- 
+
+      <button
+        type="button"
+        (click)="openPortfolio()"
+        [disabled]="!photographerSlug"
+        class="flex items-center gap-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-4 hover:border-[#c9a96e]/50 transition-colors cursor-pointer disabled:opacity-50 text-left group">
+        <span class="text-2xl text-[#c9a96e]">P</span>
+        <div>
+          <p class="text-white text-sm font-medium group-hover:text-[#c9a96e] transition-colors">View Portfolio</p>
+          <p class="text-gray-500 text-xs">Share all public albums</p>
+        </div>
+      </button>
+
     </div>
   </div>
- 
-  <!-- Setup Checklist -->
+
+  <div *ngIf="photographerSlug" class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="min-w-0">
+      <p class="text-xs uppercase tracking-wider text-gray-500 mb-1">Portfolio Page</p>
+      <p class="text-sm text-gray-300 truncate">{{ portfolioUrl() }}</p>
+    </div>
+    <div class="flex gap-2">
+      <button type="button" (click)="copyPortfolioLink()" class="px-4 py-2 border border-white/15 text-gray-300 hover:text-white rounded-sm text-sm">
+        Copy Link
+      </button>
+      <button type="button" (click)="openPortfolio()" class="px-4 py-2 bg-[#c9a96e] text-black font-semibold rounded-sm text-sm">
+        Open
+      </button>
+    </div>
+  </div>
+
   <div>
     <h3 class="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">
       Setup Checklist
     </h3>
-    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm divide-y
-                divide-[#2a2a2a]">
- 
+    <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm divide-y divide-[#2a2a2a]">
+
       <div class="flex items-center gap-4 px-5 py-4">
-        <span class="text-[#c9a96e]">✓</span>
+        <span class="text-[#c9a96e]">Done</span>
         <span class="text-gray-300 text-sm">Account created</span>
       </div>
+
       <div class="flex items-center gap-4 px-5 py-4">
-        <span class="text-gray-600">○</span>
-        <span class="text-gray-500 text-sm">Connect Cloudinary account</span>
+        <span [class.text-[#c9a96e]]="cloudinaryConnected" [class.text-gray-600]="!cloudinaryConnected">
+          {{ cloudinaryConnected ? 'Done' : 'Open' }}
+        </span>
+        <span [class.text-gray-300]="cloudinaryConnected" [class.text-gray-500]="!cloudinaryConnected" class="text-sm">
+          Connect Cloudinary account
+        </span>
       </div>
+
       <div class="flex items-center gap-4 px-5 py-4">
-        <span class="text-gray-600">○</span>
-        <span class="text-gray-500 text-sm">Setup studio branding</span>
+        <span [class.text-[#c9a96e]]="brandingConfigured" [class.text-gray-600]="!brandingConfigured">
+          {{ brandingConfigured ? 'Done' : 'Open' }}
+        </span>
+        <span [class.text-gray-300]="brandingConfigured" [class.text-gray-500]="!brandingConfigured" class="text-sm">
+          Setup studio branding
+        </span>
       </div>
+
       <div class="flex items-center gap-4 px-5 py-4">
-        <span class="text-gray-600">○</span>
-        <span class="text-gray-500 text-sm">Create your first gallery</span>
+        <span [class.text-[#c9a96e]]="totalGalleries > 0" [class.text-gray-600]="totalGalleries === 0">
+          {{ totalGalleries > 0 ? 'Done' : 'Open' }}
+        </span>
+        <span [class.text-gray-300]="totalGalleries > 0" [class.text-gray-500]="totalGalleries === 0" class="text-sm">
+          Create your first client gallery
+        </span>
       </div>
- 
+
     </div>
   </div>
- 
+
 </div>
+

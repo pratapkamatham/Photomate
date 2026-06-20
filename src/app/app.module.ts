@@ -21,20 +21,20 @@ import { environment } from 'src/environments/environment';
     AppComponent
   ],
   imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-    HttpClientModule,
-    AppRoutingModule,
-    CoreModule,
-    SharedModule,
+  BrowserModule,
+  BrowserAnimationsModule,
+  HttpClientModule,
+  AppRoutingModule,
+  CoreModule,
+  SharedModule,
 
-    // Firebase providers
-    provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideAuth(() => getAuth()),
-    provideFirestore(() => getFirestore()),
-    provideFunctions(() => getFunctions()),
-  ],
+  provideFirebaseApp(() => initializeApp(environment.firebase)),
+  provideAuth(() => getAuth()),
+  provideFirestore(() => getFirestore()),
+  provideFunctions(() =>
+    getFunctions(undefined, environment.functionsRegion)
+  ),
+],
   providers: [],
   bootstrap: [AppComponent]
 })

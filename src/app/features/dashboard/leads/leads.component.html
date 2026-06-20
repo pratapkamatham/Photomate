@@ -1,0 +1,72 @@
+﻿<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="text-2xl font-semibold text-white">Leads</h2>
+      <p class="text-sm text-gray-500 mt-1">
+        Inquiries submitted from your public portfolio and client albums.
+      </p>
+    </div>
+    <button
+      type="button"
+      (click)="loadLeads()"
+      class="border border-[#2a2a2a] text-gray-300 px-4 py-2 rounded-sm hover:border-[#c9a96e]/50 hover:text-white">
+      Refresh
+    </button>
+  </div>
+
+  <app-loader *ngIf="isLoading"></app-loader>
+
+  <div *ngIf="errorMessage" class="text-red-400 text-sm">
+    {{ errorMessage }}
+  </div>
+
+  <div
+    *ngIf="!isLoading && leads.length === 0"
+    class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-12 text-center">
+    <h3 class="text-white font-medium mb-2">No leads yet</h3>
+    <p class="text-gray-500 text-sm">
+      Share your public portfolio or album links. New inquiries will appear here.
+    </p>
+  </div>
+
+  <div *ngIf="!isLoading && leads.length > 0" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+    <article
+      *ngFor="let lead of leads"
+      class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-5">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h3 class="text-white font-semibold">{{ lead.name }}</h3>
+          <p class="text-xs text-[#c9a96e] mt-1">{{ sourceLabel(lead) }}</p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded-sm bg-green-500/10 text-green-400">
+          {{ lead.status }}
+        </span>
+      </div>
+
+      <div class="mt-4 space-y-1 text-sm text-gray-400">
+        <p *ngIf="lead.phone">Phone: {{ lead.phone }}</p>
+        <p *ngIf="lead.email">Email: {{ lead.email }}</p>
+      </div>
+
+      <p *ngIf="lead.message" class="mt-4 text-sm text-gray-300 leading-relaxed">
+        {{ lead.message }}
+      </p>
+
+      <div class="mt-5 flex flex-wrap gap-2">
+        <a
+          *ngIf="contactHref(lead)"
+          [href]="contactHref(lead)"
+          class="px-4 py-2 rounded-sm bg-[#c9a96e] text-black text-sm font-semibold no-underline">
+          Contact
+        </a>
+        <a
+          *ngIf="lead.gallerySlug"
+          [routerLink]="['/', lead.photographerSlug, 'gallery', lead.gallerySlug]"
+          target="_blank"
+          class="px-4 py-2 rounded-sm border border-white/10 text-gray-300 text-sm no-underline hover:bg-white/5">
+          Open Album
+        </a>
+      </div>
+    </article>
+  </div>
+</div>

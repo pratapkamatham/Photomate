@@ -9,56 +9,87 @@ import { GalleryService } from 'src/app/core/services/gallery.service';
   styleUrls: ['./gallery-create.component.css']
 })
 export class GalleryCreateComponent implements OnInit {
- 
+
+  presets = [
+    'Wedding Shots',
+    'Pre-Wedding Outdoor Shoots',
+    'Birthday Shoots',
+    'Kids Shoots',
+    'New Born Baby Shoots',
+    'Beach Shoots'
+  ];
+
   galleryForm!: FormGroup;
   isLoading = false;
   errorMessage = '';
- 
+
   constructor(
     private fb: FormBuilder,
     private galleryService: GalleryService,
     private router: Router
   ) {}
- 
+
   ngOnInit(): void {
     this.galleryForm = this.fb.group({
-      title:       ['', [Validators.required, Validators.minLength(3)]],
-      slug:        ['', [Validators.required,
-                         Validators.pattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')]],
+      title: ['', [Validators.required, Validators.minLength(3)]],
+      slug: ['', [
+        Validators.required,
+        Validators.pattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')
+      ]],
       description: [''],
-      isPrivate:   [false]
+      isPrivate: [false],
+      allowDownloads: [false],
+      leadCaptureEnabled: [true],
+      ctaLabel: ['Book this photographer']
     });
- 
-    // Auto-generate slug from title
+
     this.galleryForm.get('title')?.valueChanges.subscribe(value => {
-      const slug = value
+      const slug = (value || '')
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-');
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-');
       this.galleryForm.patchValue({ slug }, { emitEvent: false });
     });
   }
- 
-  get title()       { return this.galleryForm.get('title'); }
-  get slug()        { return this.galleryForm.get('slug'); }
+
+  applyPreset(title: string): void {
+    this.galleryForm.patchValue({ title });
+  }
+
+  get title() { return this.galleryForm.get('title'); }
+  get slug() { return this.galleryForm.get('slug'); }
   get description() { return this.galleryForm.get('description'); }
- 
+
   onSubmit(): void {
     if (this.galleryForm.invalid) {
       this.galleryForm.markAllAsTouched();
       return;
     }
- 
+
     this.isLoading = true;
     this.errorMessage = '';
- 
+
     this.galleryService.createGallery({
-      title:       this.galleryForm.value.title,
-      slug:        this.galleryForm.value.slug,
+      title: this.galleryForm.value.title,
+      slug: this.galleryForm.value.slug,
       description: this.galleryForm.value.description,
-      isPrivate:   this.galleryForm.value.isPrivate,
-      createdAt:   new Date()
+      isPrivate: this.galleryForm.value.isPrivate,
+      sections: [{
+        id: 'highlights',
+        title: 'Highlights',
+        description: 'Best moments from this event',
+        sortOrder: 0
+      }],
+      defaultSectionId: 'highlights',
+      shareSettings: {
+        allowDownloads: this.galleryForm.value.allowDownloads,
+        showBranding: true,
+        leadCaptureEnabled: this.galleryForm.value.leadCaptureEnabled,
+        ctaLabel: this.galleryForm.value.ctaLabel || 'Book this photographer'
+      },
+      createdAt: new Date()
     }).subscribe({
       next: (galleryId) => {
         this.isLoading = false;
@@ -71,9 +102,9 @@ export class GalleryCreateComponent implements OnInit {
       }
     });
   }
- 
+
   cancel(): void {
     this.router.navigate(['/dashboard/galleries']);
   }
- 
 }
+

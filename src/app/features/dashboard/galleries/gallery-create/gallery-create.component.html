@@ -1,144 +1,155 @@
 <div class="space-y-6 max-w-2xl">
- 
+
   <div class="flex items-center gap-4">
     <button
       (click)="cancel()"
       class="text-gray-400 hover:text-white transition-colors">
-      ← Back
+      Back
     </button>
     <h2 class="text-2xl font-semibold text-white">Create Gallery</h2>
   </div>
- 
+
   <div class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-sm p-6">
- 
-    <!-- Error -->
+
     <div
       *ngIf="errorMessage"
-      class="mb-4 px-4 py-3 bg-red-900/30 border border-red-500/30
-             rounded-sm text-red-400 text-sm">
+      class="mb-4 px-4 py-3 bg-red-900/30 border border-red-500/30 rounded-sm text-red-400 text-sm">
       {{ errorMessage }}
     </div>
- 
+
     <form [formGroup]="galleryForm" (ngSubmit)="onSubmit()">
- 
-      <!-- Title -->
+
+      <div class="mb-5 bg-[#111111] border border-[#2a2a2a] rounded-sm p-4">
+        <p class="text-white text-sm font-medium">Client gallery examples</p>
+        <p class="text-gray-500 text-xs mt-1 mb-3">
+          Create a client event album, then upload event photos.
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            *ngFor="let preset of presets"
+            (click)="applyPreset(preset)"
+            class="text-xs border border-[#c9a96e]/30 text-[#c9a96e] px-3 py-1.5 rounded-sm hover:bg-[#c9a96e]/10">
+            {{ preset }}
+          </button>
+        </div>
+      </div>
+
       <div class="mb-5">
         <label class="block text-sm text-gray-400 mb-2">
-          Gallery Title <span class="text-[#c9a96e]">*</span>
+          Event / Gallery Title <span class="text-[#c9a96e]">*</span>
         </label>
         <input
           type="text"
           formControlName="title"
-          placeholder="e.g. Sharma Wedding"
-          class="w-full bg-[#111111] border border-[#2a2a2a] text-white
-                 placeholder-gray-600 rounded-sm px-4 py-3 text-sm
-                 focus:outline-none focus:border-[#c9a96e] transition-colors"
+          placeholder="e.g. Ramya's Reception"
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white placeholder-gray-600 rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e] transition-colors"
           [class.border-red-500]="title?.invalid && title?.touched"
         />
-        <p *ngIf="title?.invalid && title?.touched"
-           class="text-red-400 text-xs mt-1">
+        <p *ngIf="title?.invalid && title?.touched" class="text-red-400 text-xs mt-1">
           Title must be at least 3 characters.
         </p>
       </div>
- 
-      <!-- Slug -->
+
       <div class="mb-5">
         <label class="block text-sm text-gray-400 mb-2">
-          Gallery URL Slug <span class="text-[#c9a96e]">*</span>
+          Public URL Slug <span class="text-[#c9a96e]">*</span>
         </label>
         <div class="flex items-center gap-2">
-          <span class="text-gray-600 text-sm shrink-0">
-            photomate.in/your-studio/gallery/
+          <span class="text-gray-600 text-sm shrink-0 hidden sm:inline">
+            /your-studio/gallery/
           </span>
           <input
             type="text"
             formControlName="slug"
-            placeholder="sharma-wedding"
-            class="flex-1 bg-[#111111] border border-[#2a2a2a] text-white
-                   placeholder-gray-600 rounded-sm px-4 py-3 text-sm
-                   focus:outline-none focus:border-[#c9a96e] transition-colors"
+            placeholder="wedding-shots"
+            class="flex-1 bg-[#111111] border border-[#2a2a2a] text-white placeholder-gray-600 rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e] transition-colors"
             [class.border-red-500]="slug?.invalid && slug?.touched"
           />
         </div>
         <p class="text-gray-600 text-xs mt-1">
-          Auto-generated from title. Only lowercase letters, numbers, hyphens.
+          This becomes the shareable client album URL.
         </p>
-        <p *ngIf="slug?.invalid && slug?.touched"
-           class="text-red-400 text-xs mt-1">
-          Slug must be lowercase with hyphens only (e.g. sharma-wedding).
+        <p *ngIf="slug?.invalid && slug?.touched" class="text-red-400 text-xs mt-1">
+          Slug must be lowercase with hyphens only.
         </p>
       </div>
- 
-      <!-- Description -->
+
       <div class="mb-5">
         <label class="block text-sm text-gray-400 mb-2">
-          Description (optional)
+          Event Story (optional)
         </label>
         <textarea
           formControlName="description"
           rows="3"
-          placeholder="Brief description of this event..."
-          class="w-full bg-[#111111] border border-[#2a2a2a] text-white
-                 placeholder-gray-600 rounded-sm px-4 py-3 text-sm
-                 focus:outline-none focus:border-[#c9a96e] transition-colors
-                 resize-none">
+          placeholder="A short story or context for this client album..."
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white placeholder-gray-600 rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e] transition-colors resize-none">
         </textarea>
       </div>
- 
-      <!-- Private Toggle -->
-      <div class="mb-6 flex items-center justify-between p-4
-                  bg-[#111111] border border-[#2a2a2a] rounded-sm">
-        <div>
-          <p class="text-white text-sm font-medium">Private Gallery</p>
-          <p class="text-gray-500 text-xs mt-0.5">
-            Only accessible via direct link
+
+      <div class="mb-5 bg-[#111111] border border-[#2a2a2a] rounded-sm divide-y divide-[#2a2a2a]">
+        <div class="p-4">
+          <p class="text-white text-sm font-medium">Default Section</p>
+          <p class="text-gray-500 text-xs mt-1">
+            Photos uploaded now will appear under Highlights. More section controls can be added later.
           </p>
         </div>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            formControlName="isPrivate"
-            class="sr-only peer"
-          />
-          <div class="w-11 h-6 bg-[#2a2a2a] peer-focus:outline-none
-                      rounded-full peer
-                      peer-checked:after:translate-x-full
-                      peer-checked:after:border-white
-                      after:content-[''] after:absolute after:top-[2px]
-                      after:left-[2px] after:bg-white after:rounded-full
-                      after:h-5 after:w-5 after:transition-all
-                      peer-checked:bg-[#c9a96e]">
-          </div>
+
+        <label class="p-4 flex items-center justify-between gap-4">
+          <span>
+            <span class="block text-white text-sm font-medium">Private Gallery</span>
+            <span class="block text-gray-500 text-xs mt-0.5">Hide from portfolio. Dashboard users can still upload.</span>
+          </span>
+          <input type="checkbox" formControlName="isPrivate" class="h-5 w-5 accent-[#c9a96e]" />
+        </label>
+
+        <label class="p-4 flex items-center justify-between gap-4">
+          <span>
+            <span class="block text-white text-sm font-medium">Lead Capture</span>
+            <span class="block text-gray-500 text-xs mt-0.5">Show inquiry form on the public album.</span>
+          </span>
+          <input type="checkbox" formControlName="leadCaptureEnabled" class="h-5 w-5 accent-[#c9a96e]" />
+        </label>
+
+        <label class="p-4 flex items-center justify-between gap-4">
+          <span>
+            <span class="block text-white text-sm font-medium">Allow Full Image Link</span>
+            <span class="block text-gray-500 text-xs mt-0.5">Adds a download/open link in the viewer.</span>
+          </span>
+          <input type="checkbox" formControlName="allowDownloads" class="h-5 w-5 accent-[#c9a96e]" />
         </label>
       </div>
- 
-      <!-- Actions -->
+
+      <div class="mb-6">
+        <label class="block text-sm text-gray-400 mb-2">
+          Lead Button Text
+        </label>
+        <input
+          type="text"
+          formControlName="ctaLabel"
+          placeholder="Book this photographer"
+          class="w-full bg-[#111111] border border-[#2a2a2a] text-white placeholder-gray-600 rounded-sm px-4 py-3 text-sm focus:outline-none focus:border-[#c9a96e] transition-colors"
+        />
+      </div>
+
       <div class="flex gap-3">
         <button
           type="button"
           (click)="cancel()"
-          class="flex-1 border border-[#2a2a2a] text-gray-400 font-medium
-                 py-3 rounded-sm hover:border-gray-500 hover:text-white
-                 transition-colors">
+          class="flex-1 border border-[#2a2a2a] text-gray-400 font-medium py-3 rounded-sm hover:border-gray-500 hover:text-white transition-colors">
           Cancel
         </button>
         <button
           type="submit"
           [disabled]="isLoading"
-          class="flex-1 bg-[#c9a96e] text-black font-semibold py-3 rounded-sm
-                 hover:bg-[#b8935a] transition-colors duration-200
-                 disabled:opacity-50 disabled:cursor-not-allowed
-                 flex items-center justify-center gap-2">
-          <span *ngIf="isLoading"
-                class="w-4 h-4 border-2 border-black border-t-transparent
-                       rounded-full animate-spin">
-          </span>
-          {{ isLoading ? 'Creating...' : 'Create & Upload Photos' }}
+          class="flex-1 bg-[#c9a96e] text-black font-semibold py-3 rounded-sm hover:bg-[#b8935a] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          <span *ngIf="isLoading" class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+          {{ isLoading ? 'Creating...' : 'Create Client Album' }}
         </button>
       </div>
- 
+
     </form>
   </div>
 </div>
- 
- 
+
+
